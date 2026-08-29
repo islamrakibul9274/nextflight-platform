@@ -50,15 +50,14 @@ export async function connectDB(): Promise<typeof mongoose> {
       // Fallback to in-memory Mongo server
       try {
         if (!cached.memServer) {
+          const fs = await import("fs");
+          if (!fs.existsSync("/tmp/mongodb-data")) {
+            try {
+              fs.mkdirSync("/tmp/mongodb-data", { recursive: true });
+            } catch {}
+          }
           const { MongoMemoryServer } = await import("mongodb-memory-server");
-          cached.memServer = await MongoMemoryServer.create({
-            binary: {
-              downloadDir: process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME ? "/tmp" : undefined,
-            },
-            instance: {
-              dbPath: process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME ? "/tmp/mongodb-data" : undefined,
-            },
-          });
+          cached.memServer = await MongoMemoryServer.create();
         }
         const memUri = cached.memServer.getUri();
         const m = await mongoose.connect(memUri, { bufferCommands: false });
