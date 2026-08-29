@@ -183,17 +183,17 @@ function SearchContent() {
               </div>
             </div>
 
-            {/* Inputs Row — Seamless Unified Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-center">
-              {/* Departure & Arrival Connected Capsule */}
-              <div className="lg:col-span-6 bg-zinc-50 border border-zinc-200/90 rounded-2xl p-1.5 flex items-center gap-1.5 relative">
-                {/* Departure (From) */}
-                <div className="flex-1 flex items-center gap-2.5 px-3 py-2 bg-white rounded-xl border border-zinc-200/80">
-                  <Plane className="w-4 h-4 text-blue-600 shrink-0 -rotate-45" />
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="origin-airport-input" className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider leading-none mb-0.5">
-                      From
-                    </label>
+            {/* Inputs Row — Pixel-Perfect Aligned Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-end">
+              {/* Departure & Arrival Connected Capsule (6 cols) */}
+              <div className="lg:col-span-6">
+                <label className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider mb-1">
+                  Flight Route (From → To)
+                </label>
+                <div className="h-[52px] bg-zinc-50 border border-zinc-200/90 rounded-2xl p-1.5 flex items-center gap-1.5 relative">
+                  {/* Departure (From) */}
+                  <div className="flex-1 h-full flex items-center gap-2.5 px-3 bg-white rounded-xl border border-zinc-200/80">
+                    <Plane className="w-4 h-4 text-blue-600 shrink-0 -rotate-45" />
                     <input
                       id="origin-airport-input"
                       name="originAirport"
@@ -202,28 +202,23 @@ function SearchContent() {
                       onChange={(e) => setFrom(e.target.value.toUpperCase())}
                       placeholder="e.g. JFK"
                       autoComplete="off"
-                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden font-mono uppercase tracking-wide leading-tight"
+                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden font-mono uppercase tracking-wide"
                     />
                   </div>
-                </div>
 
-                {/* Center Swap Button */}
-                <button
-                  type="button"
-                  onClick={handleSwapAirports}
-                  className="w-8 h-8 rounded-full bg-zinc-950 hover:bg-blue-600 text-white shadow-2xs flex items-center justify-center shrink-0 transition-transform active:rotate-180 cursor-pointer"
-                  title="Swap Origin and Destination"
-                >
-                  <ArrowRightLeft className="w-3.5 h-3.5" />
-                </button>
+                  {/* Center Swap Button */}
+                  <button
+                    type="button"
+                    onClick={handleSwapAirports}
+                    className="w-8 h-8 rounded-full bg-zinc-950 hover:bg-blue-600 text-white shadow-2xs flex items-center justify-center shrink-0 transition-transform active:rotate-180 cursor-pointer"
+                    title="Swap Origin and Destination"
+                  >
+                    <ArrowRightLeft className="w-3.5 h-3.5" />
+                  </button>
 
-                {/* Arrival (To) */}
-                <div className="flex-1 flex items-center gap-2.5 px-3 py-2 bg-white rounded-xl border border-zinc-200/80">
-                  <MapPin className="w-4 h-4 text-zinc-700 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="dest-airport-input" className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider leading-none mb-0.5">
-                      To
-                    </label>
+                  {/* Arrival (To) */}
+                  <div className="flex-1 h-full flex items-center gap-2.5 px-3 bg-white rounded-xl border border-zinc-200/80">
+                    <MapPin className="w-4 h-4 text-zinc-700 shrink-0" />
                     <input
                       id="dest-airport-input"
                       name="destAirport"
@@ -232,39 +227,42 @@ function SearchContent() {
                       onChange={(e) => setTo(e.target.value.toUpperCase())}
                       placeholder="e.g. LHR"
                       autoComplete="off"
-                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden font-mono uppercase tracking-wide leading-tight"
+                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden font-mono uppercase tracking-wide"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Travel Date */}
-              <div className="lg:col-span-4 bg-zinc-50 border border-zinc-200/90 rounded-2xl p-1.5 flex items-center">
-                <div className="w-full flex items-center gap-2.5 px-3 py-2 bg-white rounded-xl border border-zinc-200/80">
-                  <Calendar className="w-4 h-4 text-zinc-500 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="flight-date-input" className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider leading-none mb-0.5">
-                      Travel Date
-                    </label>
+              {/* Travel Date (4 cols) */}
+              <div className="lg:col-span-4">
+                <label htmlFor="flight-date-input" className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider mb-1">
+                  Travel Date
+                </label>
+                <div className="h-[52px] bg-zinc-50 border border-zinc-200/90 rounded-2xl p-1.5 flex items-center">
+                  <div className="w-full h-full flex items-center gap-2.5 px-3 bg-white rounded-xl border border-zinc-200/80">
+                    <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
                     <input
                       id="flight-date-input"
                       name="travelDate"
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden cursor-pointer leading-tight"
+                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden cursor-pointer"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Submit CTA Button */}
-              <div className="lg:col-span-2 flex items-center">
+              {/* Submit CTA Button (2 cols) */}
+              <div className="lg:col-span-2">
+                <div className="text-[10px] uppercase font-bold text-transparent select-none mb-1 hidden lg:block">
+                  Update
+                </div>
                 <button
                   type="submit"
-                  className="w-full h-full min-h-[50px] py-2.5 px-5 rounded-2xl bg-zinc-950 hover:bg-blue-600 text-white font-extrabold text-xs tracking-wider uppercase shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  className="w-full h-[52px] px-5 rounded-2xl bg-zinc-950 hover:bg-blue-600 text-white font-extrabold text-xs tracking-wider uppercase shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
-                  <Search className="w-3.5 h-3.5" />
+                  <Search className="w-4 h-4" />
                   <span>Update</span>
                 </button>
               </div>
