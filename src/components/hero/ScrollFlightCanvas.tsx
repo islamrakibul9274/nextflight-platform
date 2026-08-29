@@ -45,14 +45,14 @@ export function ScrollFlightCanvas({ scrollProgress }: ScrollFlightCanvasProps) 
     container.appendChild(renderer.domElement);
 
     // 2. Sophisticated Atmospheric Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2.0);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.5);
+    const keyLight = new THREE.DirectionalLight(0x0284c7, 2.2);
     keyLight.position.set(12, 18, 10);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x818cf8, 1.8);
+    const rimLight = new THREE.DirectionalLight(0x94a3b8, 1.5);
     rimLight.position.set(-12, -6, -10);
     scene.add(rimLight);
 

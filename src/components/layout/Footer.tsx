@@ -12,7 +12,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 flex items-center justify-center text-white">
+              <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white">
                 <Plane className="w-5 h-5 -rotate-45" />
               </div>
               <span className="font-extrabold text-xl tracking-tight text-white">

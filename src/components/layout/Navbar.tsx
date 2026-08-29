@@ -53,14 +53,14 @@ export function Navbar() {
         <div className="flex items-center justify-between">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-2xl bg-zinc-950 flex items-center justify-center text-white shadow-2xs group-hover:scale-105 transition-transform">
               <Plane className="w-5 h-5 -rotate-45" />
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-lg tracking-tight text-slate-900 leading-none">
+              <span className="font-extrabold text-lg tracking-tight text-zinc-950 leading-none">
                 Next<span className="text-blue-600">Flight</span>
               </span>
-              <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">
+              <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mt-0.5">
                 Aviation Intelligence
               </span>
             </div>
@@ -93,7 +93,7 @@ export function Navbar() {
             {user?.role === "ADMIN" && (
               <Link
                 href="/admin/dashboard"
-                className="px-3.5 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200 text-xs font-bold transition-colors flex items-center gap-1.5"
               >
                 <Shield className="w-3.5 h-3.5" />
                 <span>Admin Console</span>

@@ -3,14 +3,14 @@
 @layer base {
   :root {
     --background: 255 255 255;
-    --foreground: 15 23 42;
-    --primary: 37 99 235;
+    --foreground: 9 9 11;
+    --primary: 15 23 42;
     --primary-foreground: 255 255 255;
-    --secondary: 248 250 252;
-    --secondary-foreground: 15 23 42;
-    --muted: 241 245 249;
-    --muted-foreground: 100 116 139;
-    --border: 226 232 240;
+    --secondary: 244 244 245;
+    --secondary-foreground: 9 9 11;
+    --muted: 244 244 245;
+    --muted-foreground: 113 113 122;
+    --border: 228 228 231;
   }
 }
 
@@ -20,43 +20,31 @@ html {
 }
 
 body {
-  background-color: #fafbfc;
-  color: #0f172a;
+  background-color: #ffffff;
+  color: #09090b;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle luxury mesh background */
-.bg-mesh-canvas {
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(224, 242, 254, 0.5) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(238, 242, 255, 0.6) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(240, 249, 255, 0.4) 0px, transparent 50%);
+/* Subtle architectural dot grid */
+.bg-clean-grid {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-.bg-glass {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+.shadow-card-clean {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 4px 16px -2px rgba(0, 0, 0, 0.04);
 }
 
-.shadow-card-subtle {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 8px 24px -4px rgba(15, 23, 42, 0.04);
-}
-
-.shadow-float {
-  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(15, 23, 42, 0.04);
-}
-
-.shadow-glow-blue {
-  box-shadow: 0 0 40px -10px rgba(37, 99, 235, 0.25);
+.shadow-float-clean {
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
 /* Custom crisp scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -64,10 +52,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d4d4d8;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a1a1aa;
 }

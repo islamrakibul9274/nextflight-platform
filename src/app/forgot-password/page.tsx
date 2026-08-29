@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-zinc-950 flex items-center justify-center text-white font-bold">
               <Plane className="w-5 h-5 -rotate-45" />
             </div>
             <span className="font-extrabold text-xl tracking-tight text-slate-900">

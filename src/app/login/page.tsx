@@ -49,7 +49,7 @@ export default function LoginPage() {
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-zinc-950 flex items-center justify-center text-white font-bold">
               <Plane className="w-5 h-5 -rotate-45" />
             </div>
             <span className="font-extrabold text-xl tracking-tight text-slate-900">
@@ -141,9 +141,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleQuickFillAdmin}
-                className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold border border-purple-200 transition-colors flex items-center justify-center gap-1"
+                className="p-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-xl text-xs font-bold border border-zinc-200 transition-colors flex items-center justify-center gap-1"
               >
-                <Shield className="w-3.5 h-3.5 text-purple-600" />
+                <Shield className="w-3.5 h-3.5 text-zinc-700" />
                 <span>Admin</span>
               </button>
             </div>

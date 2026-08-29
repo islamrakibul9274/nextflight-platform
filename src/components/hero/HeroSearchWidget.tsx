@@ -10,7 +10,6 @@ import {
   Search,
   Sparkles,
   ChevronDown,
-  Check,
   MapPin,
 } from "lucide-react";
 
@@ -107,11 +106,11 @@ export function HeroSearchWidget() {
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-[0_20px_50px_rgba(15,23,42,0.08)] relative z-20">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-zinc-200 shadow-float-clean relative z-20">
         {/* Top Controls Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-100 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-zinc-100 mb-6">
           {/* Trip Type Tabs */}
-          <div className="inline-flex p-1 bg-slate-100/90 rounded-2xl">
+          <div className="inline-flex p-1 bg-zinc-100 rounded-xl">
             {[
               { id: "ROUND_TRIP", label: "Round trip" },
               { id: "ONE_WAY", label: "One way" },
@@ -121,10 +120,10 @@ export function HeroSearchWidget() {
                 key={t.id}
                 type="button"
                 onClick={() => setTripType(t.id as typeof tripType)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   tripType === t.id
-                    ? "bg-white text-slate-900 shadow-xs"
-                    : "text-slate-500 hover:text-slate-900"
+                    ? "bg-white text-zinc-950 shadow-2xs"
+                    : "text-zinc-500 hover:text-zinc-900"
                 }`}
               >
                 {t.label}
@@ -133,33 +132,33 @@ export function HeroSearchWidget() {
           </div>
 
           {/* Passenger & Cabin Dropdown Controls */}
-          <div className="flex items-center gap-3" ref={passRef}>
+          <div className="flex items-center gap-2.5" ref={passRef}>
             {/* Passenger Selector */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setOpenPassengerDropdown(!openPassengerDropdown)}
-                className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-bold transition-all flex items-center gap-2"
+                className="px-3.5 py-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-800 text-xs font-semibold transition-all flex items-center gap-2"
               >
-                <Users className="w-3.5 h-3.5 text-blue-600" />
+                <Users className="w-3.5 h-3.5 text-zinc-500" />
                 <span>{passengers} {passengers === 1 ? "Traveler" : "Travelers"}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
               </button>
 
               {openPassengerDropdown && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in zoom-in-95">
-                  <div className="text-xs font-bold text-slate-900 mb-3">Select Passengers</div>
-                  <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-zinc-200 shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95">
+                  <div className="text-xs font-bold text-zinc-900 mb-3">Select Passengers</div>
+                  <div className="flex items-center justify-between py-2 border-b border-zinc-100">
                     <div>
-                      <div className="text-xs font-bold text-slate-800">Adults</div>
-                      <div className="text-[10px] text-slate-400">Age 12+</div>
+                      <div className="text-xs font-semibold text-zinc-800">Adults</div>
+                      <div className="text-[10px] text-zinc-400">Age 12+</div>
                     </div>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         disabled={passengers <= 1}
                         onClick={() => setPassengers(Math.max(1, passengers - 1))}
-                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-xs disabled:opacity-40"
+                        className="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center font-bold text-xs disabled:opacity-40"
                       >
                         -
                       </button>
@@ -168,7 +167,7 @@ export function HeroSearchWidget() {
                         type="button"
                         disabled={passengers >= 9}
                         onClick={() => setPassengers(Math.min(9, passengers + 1))}
-                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-xs disabled:opacity-40"
+                        className="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center font-bold text-xs disabled:opacity-40"
                       >
                         +
                       </button>
@@ -182,7 +181,7 @@ export function HeroSearchWidget() {
             <select
               value={cabinClass}
               onChange={(e) => setCabinClass(e.target.value)}
-              className="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-bold transition-all outline-hidden cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-800 text-xs font-semibold transition-all outline-hidden cursor-pointer"
             >
               <option value="ECONOMY">Economy</option>
               <option value="PREMIUM_ECONOMY">Premium Economy</option>
@@ -203,29 +202,29 @@ export function HeroSearchWidget() {
                 setOpenOriginDropdown(true);
                 fetchSuggestions(originQuery);
               }}
-              className="p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/90 border border-slate-200/90 cursor-pointer transition-all relative"
+              className="p-3.5 rounded-2xl bg-zinc-50/80 hover:bg-zinc-100/90 border border-zinc-200 cursor-pointer transition-all relative"
             >
-              <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+              <div className="text-[10px] uppercase font-bold text-zinc-400 flex items-center gap-1.5">
                 <Plane className="w-3 h-3 text-blue-600 -rotate-45" /> Where From?
               </div>
               <div className="flex items-center justify-between mt-1">
-                <span className="text-base font-extrabold text-slate-900 truncate">
+                <span className="text-base font-bold text-zinc-950 truncate">
                   {origin.city}
                 </span>
-                <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-mono text-xs font-extrabold border border-blue-200">
+                <span className="px-2 py-0.5 rounded-md bg-zinc-200 text-zinc-800 font-mono text-xs font-bold">
                   {origin.iata}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 truncate mt-0.5">{origin.name}</div>
+              <div className="text-[11px] text-zinc-400 truncate mt-0.5">{origin.name}</div>
 
               {/* Origin Dropdown */}
               {openOriginDropdown && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute left-0 top-full mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3 z-50"
+                  className="absolute left-0 top-full mt-2 w-80 bg-white rounded-2xl border border-zinc-200 shadow-2xl p-3 z-50"
                 >
                   <div className="relative mb-2">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       autoFocus
@@ -235,7 +234,7 @@ export function HeroSearchWidget() {
                         setOriginQuery(e.target.value);
                         fetchSuggestions(e.target.value);
                       }}
-                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white outline-hidden"
+                      className="w-full pl-9 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:bg-white outline-hidden"
                     />
                   </div>
                   <div className="max-h-56 overflow-y-auto space-y-1">
@@ -247,15 +246,15 @@ export function HeroSearchWidget() {
                           setOpenOriginDropdown(false);
                           setOriginQuery("");
                         }}
-                        className="p-2.5 rounded-xl hover:bg-blue-50 cursor-pointer flex items-center justify-between transition-colors"
+                        className="p-2.5 rounded-xl hover:bg-zinc-50 cursor-pointer flex items-center justify-between transition-colors"
                       >
                         <div>
-                          <div className="text-xs font-bold text-slate-900">
+                          <div className="text-xs font-bold text-zinc-900">
                             {item.city}, {item.country}
                           </div>
-                          <div className="text-[10px] text-slate-400">{item.name}</div>
+                          <div className="text-[10px] text-zinc-400">{item.name}</div>
                         </div>
-                        <span className="font-mono text-xs font-extrabold text-blue-600 bg-white px-2 py-0.5 rounded border border-blue-100">
+                        <span className="font-mono text-xs font-bold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
                           {item.iataCode}
                         </span>
                       </div>
@@ -272,7 +271,7 @@ export function HeroSearchWidget() {
                 e.stopPropagation();
                 handleSwapAirports();
               }}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white hover:bg-blue-50 border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 hover:text-blue-600 z-10 transition-transform active:rotate-180"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white hover:bg-zinc-100 border border-zinc-200 shadow-2xs flex items-center justify-center text-zinc-600 hover:text-zinc-900 z-10 transition-transform active:rotate-180"
               title="Swap Departure and Destination"
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -285,29 +284,29 @@ export function HeroSearchWidget() {
                 setOpenDestDropdown(true);
                 fetchSuggestions(destQuery);
               }}
-              className="p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/90 border border-slate-200/90 cursor-pointer transition-all relative"
+              className="p-3.5 rounded-2xl bg-zinc-50/80 hover:bg-zinc-100/90 border border-zinc-200 cursor-pointer transition-all relative"
             >
-              <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
-                <MapPin className="w-3 h-3 text-indigo-600" /> Where To?
+              <div className="text-[10px] uppercase font-bold text-zinc-400 flex items-center gap-1.5">
+                <MapPin className="w-3 h-3 text-zinc-700" /> Where To?
               </div>
               <div className="flex items-center justify-between mt-1">
-                <span className="text-base font-extrabold text-slate-900 truncate">
+                <span className="text-base font-bold text-zinc-950 truncate">
                   {destination.city}
                 </span>
-                <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-mono text-xs font-extrabold border border-indigo-200">
+                <span className="px-2 py-0.5 rounded-md bg-zinc-200 text-zinc-800 font-mono text-xs font-bold">
                   {destination.iata}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 truncate mt-0.5">{destination.name}</div>
+              <div className="text-[11px] text-zinc-400 truncate mt-0.5">{destination.name}</div>
 
               {/* Destination Dropdown */}
               {openDestDropdown && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3 z-50"
+                  className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-zinc-200 shadow-2xl p-3 z-50"
                 >
                   <div className="relative mb-2">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       autoFocus
@@ -317,7 +316,7 @@ export function HeroSearchWidget() {
                         setDestQuery(e.target.value);
                         fetchSuggestions(e.target.value);
                       }}
-                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white outline-hidden"
+                      className="w-full pl-9 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:bg-white outline-hidden"
                     />
                   </div>
                   <div className="max-h-56 overflow-y-auto space-y-1">
@@ -329,15 +328,15 @@ export function HeroSearchWidget() {
                           setOpenDestDropdown(false);
                           setDestQuery("");
                         }}
-                        className="p-2.5 rounded-xl hover:bg-indigo-50 cursor-pointer flex items-center justify-between transition-colors"
+                        className="p-2.5 rounded-xl hover:bg-zinc-50 cursor-pointer flex items-center justify-between transition-colors"
                       >
                         <div>
-                          <div className="text-xs font-bold text-slate-900">
+                          <div className="text-xs font-bold text-zinc-900">
                             {item.city}, {item.country}
                           </div>
-                          <div className="text-[10px] text-slate-400">{item.name}</div>
+                          <div className="text-[10px] text-zinc-400">{item.name}</div>
                         </div>
-                        <span className="font-mono text-xs font-extrabold text-indigo-600 bg-white px-2 py-0.5 rounded border border-indigo-100">
+                        <span className="font-mono text-xs font-bold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
                           {item.iataCode}
                         </span>
                       </div>
@@ -350,28 +349,28 @@ export function HeroSearchWidget() {
 
           {/* Dates Segment */}
           <div className="lg:col-span-4 grid grid-cols-2 gap-2">
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/90">
-              <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5 mb-1">
-                <Calendar className="w-3 h-3 text-blue-600" /> Departure
+            <div className="p-3.5 rounded-2xl bg-zinc-50/80 border border-zinc-200">
+              <label className="text-[10px] uppercase font-bold text-zinc-400 flex items-center gap-1.5 mb-1">
+                <Calendar className="w-3 h-3 text-zinc-500" /> Departure
               </label>
               <input
                 type="date"
                 value={departureDate}
                 onChange={(e) => setDepartureDate(e.target.value)}
-                className="w-full bg-transparent text-sm font-extrabold text-slate-900 outline-hidden cursor-pointer"
+                className="w-full bg-transparent text-sm font-bold text-zinc-900 outline-hidden cursor-pointer"
               />
             </div>
 
-            <div className={`p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/90 ${tripType === "ONE_WAY" ? "opacity-50 pointer-events-none" : ""}`}>
-              <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5 mb-1">
-                <Calendar className="w-3 h-3 text-indigo-600" /> Return
+            <div className={`p-3.5 rounded-2xl bg-zinc-50/80 border border-zinc-200 ${tripType === "ONE_WAY" ? "opacity-50 pointer-events-none" : ""}`}>
+              <label className="text-[10px] uppercase font-bold text-zinc-400 flex items-center gap-1.5 mb-1">
+                <Calendar className="w-3 h-3 text-zinc-500" /> Return
               </label>
               <input
                 type="date"
                 disabled={tripType === "ONE_WAY"}
                 value={returnDate}
                 onChange={(e) => setReturnDate(e.target.value)}
-                className="w-full bg-transparent text-sm font-extrabold text-slate-900 outline-hidden cursor-pointer"
+                className="w-full bg-transparent text-sm font-bold text-zinc-900 outline-hidden cursor-pointer"
               />
             </div>
           </div>
@@ -380,18 +379,18 @@ export function HeroSearchWidget() {
           <div className="lg:col-span-2 flex items-stretch">
             <button
               type="submit"
-              className="w-full h-full min-h-[58px] px-6 bg-slate-900 hover:bg-blue-600 text-white font-extrabold text-sm rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group cursor-pointer"
+              className="w-full h-full min-h-[58px] px-6 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <Search className="w-4 h-4" />
               <span>Search</span>
             </button>
           </div>
         </form>
 
         {/* Popular Quick Route Tags */}
-        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Popular:
+        <div className="mt-5 pt-4 border-t border-zinc-100 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-[11px] font-bold text-zinc-400 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-zinc-500" /> Popular:
           </span>
           {[
             { from: "JFK", fromCity: "New York", to: "LHR", toCity: "London" },
@@ -406,7 +405,7 @@ export function HeroSearchWidget() {
                 setOrigin({ iata: r.from, city: r.fromCity, name: `${r.fromCity} International` });
                 setDestination({ iata: r.to, city: r.toCity, name: `${r.toCity} International` });
               }}
-              className="px-3 py-1 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-blue-700 border border-slate-200/80 font-medium transition-colors"
+              className="px-3 py-1 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-medium transition-colors"
             >
               {r.fromCity} → {r.toCity}
             </button>
