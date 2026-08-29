@@ -60,17 +60,17 @@ export function FlightFilterSidebar({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 space-y-6 shadow-2xs">
+    <div className="bg-white rounded-3xl border border-zinc-200/90 p-5 space-y-6 shadow-2xs">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-sky-600" />
-          <h3 className="text-sm font-bold text-slate-900">Filters</h3>
+          <SlidersHorizontal className="w-4 h-4 text-blue-600" />
+          <h3 className="text-sm font-bold text-zinc-900">Filters</h3>
         </div>
         <button
           type="button"
           onClick={handleReset}
-          className="text-xs text-slate-400 hover:text-slate-700 flex items-center gap-1 font-medium"
+          className="text-xs text-zinc-400 hover:text-zinc-700 flex items-center gap-1 font-semibold cursor-pointer"
         >
           <RotateCcw className="w-3 h-3" /> Reset
         </button>
@@ -78,7 +78,7 @@ export function FlightFilterSidebar({
 
       {/* 1. Stops */}
       <div className="space-y-3">
-        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Stops</h4>
+        <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Stops</h4>
         <div className="space-y-1.5">
           {[
             { id: "all", label: "Any number of stops" },
@@ -87,14 +87,15 @@ export function FlightFilterSidebar({
           ].map((s) => (
             <label
               key={s.id}
-              className="flex items-center gap-2.5 text-xs text-slate-700 cursor-pointer hover:text-slate-900 py-1"
+              className="flex items-center gap-2.5 text-xs text-zinc-700 cursor-pointer hover:text-zinc-950 py-1"
             >
               <input
                 type="radio"
                 name="stopsFilter"
+                id={`stops-filter-${s.id}`}
                 checked={filters.stops === s.id}
                 onChange={() => handleStopChange(s.id)}
-                className="accent-sky-600 w-3.5 h-3.5"
+                className="accent-blue-600 w-3.5 h-3.5 cursor-pointer"
               />
               <span>{s.label}</span>
             </label>
@@ -103,29 +104,31 @@ export function FlightFilterSidebar({
       </div>
 
       {/* 2. Price Range */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
+      <div className="space-y-3 border-t border-zinc-100 pt-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Max Price</h4>
-          <span className="text-xs font-mono font-bold text-sky-600">${filters.maxPrice}</span>
+          <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Max Price</h4>
+          <span className="text-xs font-mono font-bold text-blue-600">${filters.maxPrice}</span>
         </div>
         <input
           type="range"
+          id="price-range-slider"
+          name="priceRange"
           min={minCalculatedPrice || 200}
           max={maxCalculatedPrice || 3000}
           step={20}
           value={filters.maxPrice}
           onChange={(e) => handlePriceChange(Number(e.target.value))}
-          className="w-full accent-sky-600 cursor-pointer"
+          className="w-full accent-blue-600 cursor-pointer"
         />
-        <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+        <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
           <span>${minCalculatedPrice || 200}</span>
           <span>${maxCalculatedPrice || 3000}</span>
         </div>
       </div>
 
       {/* 3. Departure Times Window */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Departure Window</h4>
+      <div className="space-y-3 border-t border-zinc-100 pt-4">
+        <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Departure Window</h4>
         <div className="grid grid-cols-2 gap-1.5">
           {[
             { id: "all", label: "Anytime", sub: "24 Hours" },
@@ -137,14 +140,14 @@ export function FlightFilterSidebar({
               key={tw.id}
               type="button"
               onClick={() => handleTimeWindowChange(tw.id)}
-              className={`p-2 rounded-xl text-left border transition-all ${
+              className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                 filters.timeWindow === tw.id
-                  ? "border-sky-500 bg-sky-50 text-sky-950 font-bold"
-                  : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
+                  ? "border-blue-600 bg-blue-50 text-blue-950 font-bold"
+                  : "border-zinc-200 hover:border-zinc-300 text-zinc-600 bg-white"
               }`}
             >
               <div className="text-[11px] font-semibold">{tw.label}</div>
-              <div className="text-[9px] text-slate-400">{tw.sub}</div>
+              <div className="text-[9px] text-zinc-400">{tw.sub}</div>
             </button>
           ))}
         </div>
@@ -152,30 +155,28 @@ export function FlightFilterSidebar({
 
       {/* 4. Airlines */}
       {Object.keys(availableAirlines).length > 0 && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Airlines</h4>
+        <div className="space-y-3 border-t border-zinc-100 pt-4">
+          <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Airlines</h4>
           <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
             {Object.entries(availableAirlines).map(([code, info]) => {
-              const isChecked =
-                filters.selectedAirlines.length === 0 ||
-                filters.selectedAirlines.includes(code);
-
               return (
                 <label
                   key={code}
-                  className="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900"
+                  className="flex items-center justify-between text-xs text-zinc-700 cursor-pointer hover:text-zinc-950"
                 >
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
+                      id={`airline-check-${code}`}
+                      name={`airline_${code}`}
                       checked={filters.selectedAirlines.includes(code)}
                       onChange={() => toggleAirline(code)}
-                      className="accent-sky-600 rounded w-3.5 h-3.5"
+                      className="accent-blue-600 rounded w-3.5 h-3.5 cursor-pointer"
                     />
                     <span className="text-sm">{info.logo}</span>
-                    <span className="truncate max-w-[120px]">{info.name}</span>
+                    <span className="truncate max-w-[120px] font-medium">{info.name}</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">({info.count})</span>
+                  <span className="text-[10px] text-zinc-400 font-mono">({info.count})</span>
                 </label>
               );
             })}
@@ -184,14 +185,16 @@ export function FlightFilterSidebar({
       )}
 
       {/* 5. Policy Toggles */}
-      <div className="space-y-2 border-t border-slate-100 pt-4">
+      <div className="space-y-2 border-t border-zinc-100 pt-4">
         <label className="flex items-center justify-between cursor-pointer">
-          <span className="text-xs font-semibold text-slate-700">Refundable Fares Only</span>
+          <span className="text-xs font-semibold text-zinc-700">Refundable Fares Only</span>
           <input
             type="checkbox"
+            id="refundable-fares-only-toggle"
+            name="refundableOnly"
             checked={filters.refundableOnly}
             onChange={(e) => onChange({ ...filters, refundableOnly: e.target.checked })}
-            className="accent-sky-600 rounded w-4 h-4"
+            className="accent-blue-600 rounded w-4 h-4 cursor-pointer"
           />
         </label>
       </div>

@@ -169,8 +169,8 @@ export function FlightCard({ flight, cabinClass = "ECONOMY", passengerCount = 1 
               </span>
             )}
             {flight.amenities.lieFlatSeats && (
-              <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-medium border border-indigo-100">
-                <Zap className="w-3 h-3" /> 180° Lie-Flat
+              <span className="inline-flex items-center gap-1 bg-zinc-100 text-zinc-800 px-2 py-0.5 rounded-md font-medium border border-zinc-200">
+                <Zap className="w-3 h-3 text-blue-600" /> 180° Lie-Flat
               </span>
             )}
             {flight.refundable && (

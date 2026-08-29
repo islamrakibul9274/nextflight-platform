@@ -231,7 +231,7 @@ export default async function FlightDetailsPage({
                   </div>
 
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                    <Coffee className="w-4 h-4 text-indigo-500 shrink-0" />
+                    <Coffee className="w-4 h-4 text-zinc-700 shrink-0" />
                     <div>
                       <div className="font-bold text-slate-900">Chef-Curated In-Flight Dining</div>
                       <div className="text-slate-500 text-[11px]">Complimentary hot meals & bar service</div>

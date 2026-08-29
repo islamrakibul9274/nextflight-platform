@@ -14,9 +14,8 @@ import {
   Search,
   Filter,
   X,
-  Sparkles,
-  AlertCircle,
-  Building2,
+  MapPin,
+  ChevronDown,
 } from "lucide-react";
 
 function SearchContent() {
@@ -97,7 +96,6 @@ function SearchContent() {
         setAvailableAirlines(data.filters.airlines || {});
         setMinPrice(data.filters.minPrice || 200);
         setMaxPrice(data.filters.maxPrice || 3000);
-        // Only set default maxPrice once if not manually set lower
         if (filters.maxPrice === 2500 && data.filters.maxPrice) {
           setFilters((prev) => ({ ...prev, maxPrice: data.filters.maxPrice }));
         }
@@ -132,86 +130,146 @@ function SearchContent() {
     router.push(`/search?${params.toString()}`);
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("from", from);
+    params.set("to", to);
+    params.set("date", date);
+    params.set("cabin", cabin);
+    params.set("passengers", passengers.toString());
+    router.push(`/search?${params.toString()}`);
+    fetchFlights();
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50/70 pt-24 pb-20">
+    <div className="min-h-screen bg-zinc-50/60 pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Search Bar Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-            {/* Origin */}
-            <div className="md:col-span-3">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                Departure (From)
-              </label>
-              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200">
-                <Plane className="w-4 h-4 text-sky-600 shrink-0" />
-                <input
-                  type="text"
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value.toUpperCase())}
-                  placeholder="e.g. JFK, SFO, LHR"
-                  className="w-full bg-transparent text-sm font-bold text-slate-900 outline-hidden font-mono uppercase"
-                />
+        {/* Top Search Bar Card — Perfectly Aligned & Justified */}
+        <div className="bg-white rounded-3xl border border-zinc-200/90 shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-4 sm:p-5 mb-8">
+          <form onSubmit={handleSearchSubmit} className="space-y-3">
+            {/* Top Row: Mini Selectors */}
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-100 text-zinc-800 font-semibold">
+                <Users className="w-3.5 h-3.5 text-zinc-500" />
+                <select
+                  id="search-passengers-select"
+                  name="passengers"
+                  value={passengers}
+                  onChange={(e) => setPassengers(Number(e.target.value))}
+                  className="bg-transparent font-bold outline-hidden cursor-pointer"
+                >
+                  <option value={1}>1 Traveler</option>
+                  <option value={2}>2 Travelers</option>
+                  <option value={3}>3 Travelers</option>
+                  <option value={4}>4 Travelers</option>
+                  <option value={5}>5+ Travelers</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-100 text-zinc-800 font-semibold">
+                <select
+                  id="search-cabin-select"
+                  name="cabin"
+                  value={cabin}
+                  onChange={(e) => setCabin(e.target.value)}
+                  className="bg-transparent font-bold outline-hidden cursor-pointer"
+                >
+                  <option value="ECONOMY">Economy</option>
+                  <option value="PREMIUM_ECONOMY">Premium Economy</option>
+                  <option value="BUSINESS">Business Class</option>
+                  <option value="FIRST">First Class</option>
+                </select>
               </div>
             </div>
 
-            {/* Swap Button */}
-            <div className="md:col-span-1 flex justify-center">
-              <button
-                type="button"
-                onClick={handleSwapAirports}
-                className="w-8 h-8 rounded-full border border-slate-200 hover:border-sky-500 hover:text-sky-600 bg-white flex items-center justify-center text-slate-600 transition-all hover:rotate-180"
-                title="Swap Departure and Arrival"
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            {/* Inputs Row — Seamless Unified Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-center">
+              {/* Departure & Arrival Connected Capsule */}
+              <div className="lg:col-span-6 bg-zinc-50 border border-zinc-200/90 rounded-2xl p-1.5 flex items-center gap-1.5 relative">
+                {/* Departure (From) */}
+                <div className="flex-1 flex items-center gap-2.5 px-3 py-2 bg-white rounded-xl border border-zinc-200/80">
+                  <Plane className="w-4 h-4 text-blue-600 shrink-0 -rotate-45" />
+                  <div className="flex-1 min-w-0">
+                    <label htmlFor="origin-airport-input" className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider leading-none mb-0.5">
+                      From
+                    </label>
+                    <input
+                      id="origin-airport-input"
+                      name="originAirport"
+                      type="text"
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value.toUpperCase())}
+                      placeholder="e.g. JFK"
+                      autoComplete="off"
+                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden font-mono uppercase tracking-wide leading-tight"
+                    />
+                  </div>
+                </div>
 
-            {/* Destination */}
-            <div className="md:col-span-3">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                Arrival (To)
-              </label>
-              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200">
-                <Plane className="w-4 h-4 text-sky-600 shrink-0 -rotate-45" />
-                <input
-                  type="text"
-                  value={to}
-                  onChange={(e) => setTo(e.target.value.toUpperCase())}
-                  placeholder="e.g. LHR, HND, DXB"
-                  className="w-full bg-transparent text-sm font-bold text-slate-900 outline-hidden font-mono uppercase"
-                />
+                {/* Center Swap Button */}
+                <button
+                  type="button"
+                  onClick={handleSwapAirports}
+                  className="w-8 h-8 rounded-full bg-zinc-950 hover:bg-blue-600 text-white shadow-2xs flex items-center justify-center shrink-0 transition-transform active:rotate-180 cursor-pointer"
+                  title="Swap Origin and Destination"
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Arrival (To) */}
+                <div className="flex-1 flex items-center gap-2.5 px-3 py-2 bg-white rounded-xl border border-zinc-200/80">
+                  <MapPin className="w-4 h-4 text-zinc-700 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <label htmlFor="dest-airport-input" className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider leading-none mb-0.5">
+                      To
+                    </label>
+                    <input
+                      id="dest-airport-input"
+                      name="destAirport"
+                      type="text"
+                      value={to}
+                      onChange={(e) => setTo(e.target.value.toUpperCase())}
+                      placeholder="e.g. LHR"
+                      autoComplete="off"
+                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden font-mono uppercase tracking-wide leading-tight"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Travel Date */}
+              <div className="lg:col-span-4 bg-zinc-50 border border-zinc-200/90 rounded-2xl p-1.5 flex items-center">
+                <div className="w-full flex items-center gap-2.5 px-3 py-2 bg-white rounded-xl border border-zinc-200/80">
+                  <Calendar className="w-4 h-4 text-zinc-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <label htmlFor="flight-date-input" className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider leading-none mb-0.5">
+                      Travel Date
+                    </label>
+                    <input
+                      id="flight-date-input"
+                      name="travelDate"
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full bg-transparent text-sm font-black text-zinc-950 outline-hidden cursor-pointer leading-tight"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit CTA Button */}
+              <div className="lg:col-span-2 flex items-center">
+                <button
+                  type="submit"
+                  className="w-full h-full min-h-[50px] py-2.5 px-5 rounded-2xl bg-zinc-950 hover:bg-blue-600 text-white font-extrabold text-xs tracking-wider uppercase shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Update</span>
+                </button>
               </div>
             </div>
-
-            {/* Departure Date */}
-            <div className="md:col-span-3">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                Travel Date
-              </label>
-              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200">
-                <Calendar className="w-4 h-4 text-sky-600 shrink-0" />
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-transparent text-sm font-bold text-slate-900 outline-hidden cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* Cabin Class & Update CTA */}
-            <div className="md:col-span-2 flex items-end gap-2">
-              <button
-                type="button"
-                onClick={fetchFlights}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-sky-600 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5"
-              >
-                <Search className="w-3.5 h-3.5" />
-                <span>Update</span>
-              </button>
-            </div>
-          </div>
+          </form>
         </div>
 
         {/* Flexible Date Matrix Strip */}
@@ -241,9 +299,9 @@ function SearchContent() {
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(true)}
-                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-2 shadow-2xs"
+                className="px-4 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-bold text-zinc-700 flex items-center gap-2 shadow-2xs cursor-pointer"
               >
-                <Filter className="w-3.5 h-3.5 text-sky-600" />
+                <Filter className="w-3.5 h-3.5 text-blue-600" />
                 <span>Filters & Preferences</span>
               </button>
             </div>
@@ -261,13 +319,13 @@ function SearchContent() {
                 {[1, 2, 3, 4].map((n) => (
                   <div
                     key={n}
-                    className="p-6 rounded-2xl bg-white border border-slate-200 animate-pulse space-y-4"
+                    className="p-6 rounded-3xl bg-white border border-zinc-200 animate-pulse space-y-4"
                   >
-                    <div className="h-4 bg-slate-200 rounded w-1/4" />
+                    <div className="h-4 bg-zinc-200 rounded w-1/4" />
                     <div className="grid grid-cols-3 gap-4">
-                      <div className="h-8 bg-slate-200 rounded" />
-                      <div className="h-8 bg-slate-200 rounded" />
-                      <div className="h-8 bg-slate-200 rounded" />
+                      <div className="h-8 bg-zinc-200 rounded" />
+                      <div className="h-8 bg-zinc-200 rounded" />
+                      <div className="h-8 bg-zinc-200 rounded" />
                     </div>
                   </div>
                 ))}
@@ -284,14 +342,14 @@ function SearchContent() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-4">
-                <div className="w-12 h-12 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center mx-auto">
+              <div className="bg-white rounded-3xl border border-zinc-200 p-12 text-center space-y-4 shadow-2xs">
+                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
                   <Plane className="w-6 h-6 -rotate-45" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-bold text-zinc-900">
                   No flights match your exact criteria
                 </h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                <p className="text-xs text-zinc-500 max-w-md mx-auto">
                   Try adjusting your maximum price slider, clearing airline filters, or selecting a flexible travel date.
                 </p>
                 <button
@@ -305,7 +363,7 @@ function SearchContent() {
                       refundableOnly: false,
                     });
                   }}
-                  className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800"
+                  className="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-semibold hover:bg-zinc-800 cursor-pointer"
                 >
                   Reset All Filters
                 </button>
@@ -317,14 +375,14 @@ function SearchContent() {
 
       {/* Mobile Filters Drawer Modal */}
       {mobileFiltersOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex justify-end">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs z-50 flex justify-end">
           <div className="w-full max-w-sm bg-white h-full p-6 overflow-y-auto space-y-6 animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">Flight Filters</h3>
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <h3 className="text-base font-bold text-zinc-900">Flight Filters</h3>
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700"
+                className="p-1.5 text-zinc-400 hover:text-zinc-700"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -341,7 +399,7 @@ function SearchContent() {
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(false)}
-              className="w-full py-3 bg-slate-900 text-white rounded-xl text-xs font-bold"
+              className="w-full py-3 bg-zinc-950 text-white rounded-xl text-xs font-bold cursor-pointer"
             >
               Apply Filters
             </button>
@@ -356,10 +414,10 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="min-h-screen flex items-center justify-center bg-zinc-50">
           <div className="text-center space-y-2">
-            <div className="w-8 h-8 border-3 border-sky-600 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-xs font-semibold text-slate-500">Loading flight matrix...</p>
+            <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-xs font-semibold text-zinc-500">Loading flight matrix...</p>
           </div>
         </div>
       }
