@@ -15,7 +15,7 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-let cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
+const cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
 
 if (!global.mongooseCache) {
   global.mongooseCache = cached;
@@ -30,14 +30,15 @@ export async function connectDB(): Promise<typeof mongoose> {
     const opts = {
       bufferCommands: false,
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
     };
 
     cached.promise = (async () => {
       if (MONGODB_URI) {
         try {
           const m = await mongoose.connect(MONGODB_URI, opts);
-          console.log(" Connected to MongoDB Atlas URI");
+          console.log("✅ Connected to MongoDB Atlas URI");
           return m;
         } catch (atlasErr: unknown) {
           const err = atlasErr as Error;
@@ -46,11 +47,18 @@ export async function connectDB(): Promise<typeof mongoose> {
         }
       }
 
-      // Fallback to in-memory Mongo server for robust standalone development
+      // Fallback to in-memory Mongo server
       try {
         if (!cached.memServer) {
           const { MongoMemoryServer } = await import("mongodb-memory-server");
-          cached.memServer = await MongoMemoryServer.create();
+          cached.memServer = await MongoMemoryServer.create({
+            binary: {
+              downloadDir: process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME ? "/tmp" : undefined,
+            },
+            instance: {
+              dbPath: process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME ? "/tmp/mongodb-data" : undefined,
+            },
+          });
         }
         const memUri = cached.memServer.getUri();
         const m = await mongoose.connect(memUri, { bufferCommands: false });
