@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 255 255 255;
+    --foreground: 15 23 42;
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+    --primary: 2 132 199;
+    --primary-foreground: 255 255 255;
+    --secondary: 241 245 249;
+    --secondary-foreground: 15 23 42;
+    --muted: 248 250 252;
+    --muted-foreground: 100 116 139;
+    --accent: 240 249 255;
+    --accent-foreground: 2 132 199;
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 2 132 199;
+    --radius: 0.75rem;
   }
 }
 
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle luxury grain / mist background */
+.bg-mesh-subtle {
+  background-image: 
+    radial-gradient(at 15% 10%, rgba(224, 242, 254, 0.45) 0px, transparent 55%),
+    radial-gradient(at 85% 15%, rgba(238, 242, 255, 0.5) 0px, transparent 50%),
+    radial-gradient(at 50% 85%, rgba(240, 249, 255, 0.35) 0px, transparent 60%);
+}
+
+.bg-glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.bg-glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* Custom crisp scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
