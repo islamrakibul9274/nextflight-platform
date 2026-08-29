@@ -41,13 +41,15 @@ export default function RegisterPage() {
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">
               <Plane className="w-5 h-5 -rotate-45" />
             </div>
-            <span className="font-bold text-xl tracking-wider text-slate-900">AETHERIA</span>
+            <span className="font-extrabold text-xl tracking-tight text-slate-900">
+              Next<span className="text-blue-600">Flight</span>
+            </span>
           </Link>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Create Your Aetheria Account
+            Create Your NextFlight Account
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Unlock direct booking rates, saved travelers, and automatic e-ticket synchronization.
@@ -134,7 +136,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full py-3.5 bg-slate-900 hover:bg-sky-600 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <span>{loading ? "Creating Account..." : "Create Aetheria Account"}</span>
+              <span>{loading ? "Creating Account..." : "Create NextFlight Account"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

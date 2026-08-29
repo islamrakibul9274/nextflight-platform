@@ -1,20 +1,17 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 interface ScrollFlightCanvasProps {
   scrollProgress: number; // 0.0 to 1.0
-  fallbackMode?: boolean;
 }
 
 export function ScrollFlightCanvas({ scrollProgress }: ScrollFlightCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const targetProgressRef = useRef(0);
   const currentProgressRef = useRef(0);
-  const [isLowPower, setIsLowPower] = useState(false);
 
-  // Update target progress ref
   useEffect(() => {
     targetProgressRef.current = scrollProgress;
   }, [scrollProgress]);
@@ -23,282 +20,300 @@ export function ScrollFlightCanvas({ scrollProgress }: ScrollFlightCanvasProps) 
     const container = containerRef.current;
     if (!container) return;
 
-    // Check prefers-reduced-motion
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mediaQuery.matches) {
-      setIsLowPower(true);
-    }
-
-    // 1. Setup Three.js Scene, Camera, Renderer
+    // 1. Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
-    scene.fog = new THREE.FogExp2(0xf0f7ff, 0.015);
+    scene.background = null; // transparent background
 
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 1.5, 12);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+    camera.position.set(0, 1.2, 14);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      powerPreference: "high-performance",
       alpha: true,
+      powerPreference: "high-performance",
     });
 
     const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
     renderer.setPixelRatio(dpr);
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.0;
 
     container.appendChild(renderer.domElement);
 
-    // 2. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    // 2. Sophisticated Atmospheric Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0x38bdf8, 2.2);
-    sunLight.position.set(10, 20, 15);
-    scene.add(sunLight);
+    const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.5);
+    keyLight.position.set(12, 18, 10);
+    scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xe0e7ff, 1.2);
-    fillLight.position.set(-10, -5, -10);
-    scene.add(fillLight);
+    const rimLight = new THREE.DirectionalLight(0x818cf8, 1.8);
+    rimLight.position.set(-12, -6, -10);
+    scene.add(rimLight);
 
-    // 3. Create High-Fidelity 3D Jet Model & Aircraft Group
-    const jetGroup = new THREE.Group();
+    // 3. Create Sleek Aerodynamic Jet Group (Positioned in 3D space with elegant scale)
+    const flightGroup = new THREE.Group();
 
-    // Fuselage
-    const fuselageGeo = new THREE.CylinderGeometry(0.55, 0.45, 6.2, 32);
-    fuselageGeo.rotateX(Math.PI / 2);
-    const aircraftMat = new THREE.MeshStandardMaterial({
-      color: 0xf8fafc,
+    // Sleek Titanium White Aircraft Material
+    const jetBodyMat = new THREE.MeshStandardMaterial({
+      color: 0xf1f5f9,
       metalness: 0.85,
-      roughness: 0.18,
+      roughness: 0.15,
     });
-    const fuselage = new THREE.Mesh(fuselageGeo, aircraftMat);
-    jetGroup.add(fuselage);
 
-    // Nose Cone
-    const noseGeo = new THREE.ConeGeometry(0.55, 1.8, 32);
-    noseGeo.rotateX(-Math.PI / 2);
-    const nose = new THREE.Mesh(noseGeo, aircraftMat);
-    nose.position.set(0, 0, 3.8);
-    jetGroup.add(nose);
+    const cobaltAccents = new THREE.MeshStandardMaterial({
+      color: 0x2563eb,
+      metalness: 0.6,
+      roughness: 0.2,
+    });
 
-    // Cockpit Windshield (Polished Dark Glass)
-    const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0284c7,
-      metalness: 0.9,
-      roughness: 0.1,
-      transmission: 0.6,
-      thickness: 0.5,
+    const glassCockpitMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0f172a,
+      metalness: 0.95,
+      roughness: 0.05,
+      transmission: 0.7,
+      thickness: 0.4,
       clearcoat: 1.0,
     });
-    const windshieldGeo = new THREE.BoxGeometry(0.65, 0.35, 0.9);
-    const windshield = new THREE.Mesh(windshieldGeo, glassMat);
-    windshield.position.set(0, 0.38, 2.6);
-    windshield.rotation.x = -0.3;
-    jetGroup.add(windshield);
 
-    // Main Wings (Swept-back modern wing profile)
+    // Aerodynamic Streamlined Fuselage
+    const fuselageShape = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0, 3.8),
+      new THREE.Vector3(0, 0.05, 2.2),
+      new THREE.Vector3(0, 0.02, 0),
+      new THREE.Vector3(0, -0.02, -2.4),
+      new THREE.Vector3(0, 0.1, -4.0),
+    ]);
+
+    const fuselageGeo = new THREE.TubeGeometry(fuselageShape, 64, 0.38, 24, false);
+    const fuselage = new THREE.Mesh(fuselageGeo, jetBodyMat);
+    flightGroup.add(fuselage);
+
+    // Cockpit Visor
+    const cockpitGeo = new THREE.BoxGeometry(0.36, 0.22, 0.9);
+    const cockpit = new THREE.Mesh(cockpitGeo, glassCockpitMat);
+    cockpit.position.set(0, 0.24, 2.0);
+    cockpit.rotation.x = -0.22;
+    flightGroup.add(cockpit);
+
+    // Modern Blended Wings
     const wingShape = new THREE.Shape();
-    wingShape.moveTo(0, 0);
-    wingShape.lineTo(4.8, -1.8);
-    wingShape.lineTo(4.6, -2.4);
-    wingShape.lineTo(0, -1.2);
+    wingShape.moveTo(0, 0.2);
+    wingShape.lineTo(4.6, -1.8);
+    wingShape.lineTo(4.4, -2.2);
+    wingShape.lineTo(0, -1.0);
     wingShape.closePath();
 
-    const wingExtrudeSettings = { depth: 0.08, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.02, bevelThickness: 0.02 };
-    const wingGeo = new THREE.ExtrudeGeometry(wingShape, wingExtrudeSettings);
+    const wingGeo = new THREE.ExtrudeGeometry(wingShape, {
+      depth: 0.06,
+      bevelEnabled: true,
+      bevelSegments: 2,
+      bevelSize: 0.015,
+      bevelThickness: 0.015,
+    });
     wingGeo.rotateX(Math.PI / 2);
 
-    const rightWing = new THREE.Mesh(wingGeo, aircraftMat);
-    rightWing.position.set(0.3, -0.05, 0.5);
-    jetGroup.add(rightWing);
+    const rightWing = new THREE.Mesh(wingGeo, jetBodyMat);
+    rightWing.position.set(0.15, -0.02, 0.3);
+    flightGroup.add(rightWing);
 
     const leftWing = rightWing.clone();
     leftWing.scale.set(-1, 1, 1);
-    leftWing.position.set(-0.3, -0.05, 0.5);
-    jetGroup.add(leftWing);
+    leftWing.position.set(-0.15, -0.02, 0.3);
+    flightGroup.add(leftWing);
 
-    // Winglet accents (Sky Blue tips)
-    const wingletMat = new THREE.MeshBasicMaterial({ color: 0x0284c7 });
-    const wingletGeo = new THREE.BoxGeometry(0.08, 0.6, 0.3);
-    const rightWinglet = new THREE.Mesh(wingletGeo, wingletMat);
-    rightWinglet.position.set(4.7, 0.25, -1.6);
-    jetGroup.add(rightWinglet);
+    // Winglets
+    const wingletGeo = new THREE.BoxGeometry(0.04, 0.5, 0.25);
+    const rightWinglet = new THREE.Mesh(wingletGeo, cobaltAccents);
+    rightWinglet.position.set(4.55, 0.22, -1.55);
+    flightGroup.add(rightWinglet);
 
     const leftWinglet = rightWinglet.clone();
-    leftWinglet.position.set(-4.7, 0.25, -1.6);
-    jetGroup.add(leftWinglet);
+    leftWinglet.position.set(-4.55, 0.22, -1.55);
+    flightGroup.add(leftWinglet);
 
-    // Vertical Stabilizer / Tail Fin
+    // Vertical Tail Fin
     const tailShape = new THREE.Shape();
     tailShape.moveTo(0, 0);
-    tailShape.lineTo(0, 1.9);
-    tailShape.lineTo(-1.1, 1.8);
-    tailShape.lineTo(-1.8, 0);
+    tailShape.lineTo(0, 1.6);
+    tailShape.lineTo(-0.9, 1.5);
+    tailShape.lineTo(-1.6, 0);
     tailShape.closePath();
 
-    const tailGeo = new THREE.ExtrudeGeometry(tailShape, { depth: 0.07, bevelEnabled: true, bevelSegments: 2, bevelSize: 0.02, bevelThickness: 0.02 });
-    const tailFin = new THREE.Mesh(tailGeo, aircraftMat);
-    tailFin.position.set(-0.035, 0.35, -2.1);
-    jetGroup.add(tailFin);
+    const tailGeo = new THREE.ExtrudeGeometry(tailShape, {
+      depth: 0.05,
+      bevelEnabled: true,
+      bevelSegments: 2,
+      bevelSize: 0.015,
+      bevelThickness: 0.015,
+    });
+    const tail = new THREE.Mesh(tailGeo, cobaltAccents);
+    tail.position.set(-0.025, 0.25, -2.4);
+    flightGroup.add(tail);
 
     // Horizontal Stabilizers
-    const hStabGeo = new THREE.BoxGeometry(2.4, 0.06, 0.8);
-    const hStab = new THREE.Mesh(hStabGeo, aircraftMat);
-    hStab.position.set(0, 0.2, -2.7);
-    jetGroup.add(hStab);
+    const hStabGeo = new THREE.BoxGeometry(2.0, 0.04, 0.65);
+    const hStab = new THREE.Mesh(hStabGeo, jetBodyMat);
+    hStab.position.set(0, 0.18, -3.2);
+    flightGroup.add(hStab);
 
-    // Jet Turbofan Engines
-    const engineGeo = new THREE.CylinderGeometry(0.32, 0.28, 1.4, 24);
+    // Engine Nacelles
+    const engineGeo = new THREE.CylinderGeometry(0.24, 0.2, 1.2, 24);
     engineGeo.rotateX(Math.PI / 2);
-    const engineMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.3 });
-    const engineR = new THREE.Mesh(engineGeo, engineMat);
-    engineR.position.set(1.6, -0.4, 0.2);
-    jetGroup.add(engineR);
+    const engineMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
 
-    const engineL = engineR.clone();
-    engineL.position.set(-1.6, -0.4, 0.2);
-    jetGroup.add(engineL);
+    const rightEngine = new THREE.Mesh(engineGeo, engineMat);
+    rightEngine.position.set(1.4, -0.28, 0.1);
+    flightGroup.add(rightEngine);
 
-    // Engine Glow / Afterburner Rings
-    const glowGeo = new THREE.RingGeometry(0.1, 0.26, 24);
-    const glowMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide });
-    const glowR = new THREE.Mesh(glowGeo, glowMat);
-    glowR.position.set(1.6, -0.4, -0.52);
-    jetGroup.add(glowR);
+    const leftEngine = rightEngine.clone();
+    leftEngine.position.set(-1.4, -0.28, 0.1);
+    flightGroup.add(leftEngine);
 
-    const glowL = glowR.clone();
-    glowL.position.set(-1.6, -0.4, -0.52);
-    jetGroup.add(glowL);
+    // Engine Luminous Thruster Rings
+    const thrusterGeo = new THREE.RingGeometry(0.08, 0.19, 24);
+    const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide });
 
-    scene.add(jetGroup);
+    const rightThruster = new THREE.Mesh(thrusterGeo, thrusterMat);
+    rightThruster.position.set(1.4, -0.28, -0.52);
+    flightGroup.add(rightThruster);
 
-    // 4. Volumetric Cloud Particles & Atmospheric Streamlines
-    const particleCount = 280;
+    const leftThruster = rightThruster.clone();
+    leftThruster.position.set(-1.4, -0.28, -0.52);
+    flightGroup.add(leftThruster);
+
+    // Scale flightGroup to fit harmoniously in the background
+    flightGroup.scale.set(0.72, 0.72, 0.72);
+    scene.add(flightGroup);
+
+    // 4. Geodesic Flight Arcs & Interactive Route Matrix in 3D Space
+    const arcGroup = new THREE.Group();
+
+    // Create 3 dynamic curved airway routes
+    const createCurvedAirway = (start: THREE.Vector3, mid: THREE.Vector3, end: THREE.Vector3, color: number) => {
+      const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+      const points = curve.getPoints(50);
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineDashedMaterial({
+        color: color,
+        dashSize: 0.4,
+        gapSize: 0.2,
+        transparent: true,
+        opacity: 0.45,
+      });
+      const line = new THREE.Line(geometry, material);
+      line.computeLineDistances();
+      return line;
+    };
+
+    const airway1 = createCurvedAirway(
+      new THREE.Vector3(-12, -4, -6),
+      new THREE.Vector3(0, 3, -4),
+      new THREE.Vector3(12, 1, -8),
+      0x38bdf8
+    );
+    const airway2 = createCurvedAirway(
+      new THREE.Vector3(-10, 4, -10),
+      new THREE.Vector3(2, 6, -6),
+      new THREE.Vector3(14, -2, -12),
+      0x818cf8
+    );
+    arcGroup.add(airway1);
+    arcGroup.add(airway2);
+    scene.add(arcGroup);
+
+    // 5. Atmospheric Streamline Particles
+    const particleCount = 200;
     const particleGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
-    const scales = new Float32Array(particleCount);
 
     for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 45;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
-      scales[i] = Math.random() * 0.8 + 0.2;
+      positions[i * 3] = (Math.random() - 0.5) * 35;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 16;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
     }
 
     particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    particleGeo.setAttribute("scale", new THREE.BufferAttribute(scales, 1));
 
-    const cloudParticleMat = new THREE.PointsMaterial({
-      color: 0xbae6fd,
-      size: 0.7,
+    const particleMat = new THREE.PointsMaterial({
+      color: 0x93c5fd,
+      size: 0.18,
       transparent: true,
-      opacity: 0.45,
-      blending: THREE.NormalBlending,
+      opacity: 0.5,
     });
 
-    const particles = new THREE.Points(particleGeo, cloudParticleMat);
+    const particles = new THREE.Points(particleGeo, particleMat);
     scene.add(particles);
-
-    // 5. Dynamic Jet Vapor Trails (Streamlines)
-    const trailCount = 80;
-    const trailGeo = new THREE.BufferGeometry();
-    const trailPositions = new Float32Array(trailCount * 3);
-
-    for (let i = 0; i < trailCount; i++) {
-      trailPositions[i * 3] = (Math.random() > 0.5 ? 1.6 : -1.6) + (Math.random() - 0.5) * 0.2;
-      trailPositions[i * 3 + 1] = -0.4 + (Math.random() - 0.5) * 0.1;
-      trailPositions[i * 3 + 2] = -0.5 - (i * 0.35);
-    }
-    trailGeo.setAttribute("position", new THREE.BufferAttribute(trailPositions, 3));
-    const trailMat = new THREE.PointsMaterial({
-      color: 0x38bdf8,
-      size: 0.25,
-      transparent: true,
-      opacity: 0.6,
-    });
-    const trail = new THREE.Points(trailGeo, trailMat);
-    scene.add(trail);
 
     // 6. Smooth Lerp Animation Loop
     let animationFrameId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Lerp current progress smoothly towards target scroll progress
-      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.075;
+      // Smooth progress lerp
+      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.08;
       const p = currentProgressRef.current;
 
-      // 5-Phase Camera & Aircraft Trajectory Mapping:
-      // Phase 1 (0 - 0.25): Tarmac & Ground roll (low altitude, slight roll)
-      // Phase 2 (0.25 - 0.50): Rotation & Climb (nose up, bank angle, rising elevation)
-      // Phase 3 (0.50 - 0.75): Stratosphere Cruise (smooth level flight, cloud velocity)
-      // Phase 4 (0.75 - 1.00): Horizon transition & Dock into search engine
+      // Natural organic flight bobbing
+      const bobY = Math.sin(elapsedTime * 1.8) * 0.08;
+      const bobRoll = Math.sin(elapsedTime * 1.2) * 0.03;
 
-      // Aircraft position and rotation based on scroll progress + subtle organic flight bobbing
-      const idleBobY = Math.sin(elapsedTime * 1.5) * 0.06;
-      const idleRoll = Math.sin(elapsedTime * 1.2) * 0.02;
-
-      if (p < 0.25) {
-        // Phase 1: Pre-flight & roll
-        const localP = p / 0.25;
-        jetGroup.position.set(0, -0.4 + localP * 0.6 + idleBobY, 0.5 - localP * 1.5);
-        jetGroup.rotation.set(-0.05 + localP * 0.18, 0, idleRoll);
-        camera.position.set(0, 1.2 + localP * 0.5, 11 - localP * 1.5);
-      } else if (p < 0.5) {
-        // Phase 2: Climb & Banking turn
-        const localP = (p - 0.25) / 0.25;
-        jetGroup.position.set(localP * 1.2, 0.2 + localP * 1.4 + idleBobY, -1.0 - localP * 2.0);
-        jetGroup.rotation.set(0.13 - localP * 0.08, -localP * 0.25, -localP * 0.22 + idleRoll);
-        camera.position.set(-localP * 0.8, 1.7 + localP * 0.8, 9.5 - localP * 2.0);
-      } else if (p < 0.75) {
-        // Phase 3: Stratospheric Cruise
-        const localP = (p - 0.5) / 0.25;
-        jetGroup.position.set(1.2 - localP * 1.6, 1.6 + localP * 0.2 + idleBobY, -3.0 - localP * 1.5);
-        jetGroup.rotation.set(0.05, -0.25 + localP * 0.35, -0.22 + localP * 0.32 + idleRoll);
-        camera.position.set(-0.8 + localP * 1.2, 2.5 + localP * 0.3, 7.5 - localP * 1.5);
+      // Smooth trajectory across scroll:
+      // Positioned strategically above the widget and to the right so it never obscures text
+      if (p < 0.3) {
+        // Phase 1: Ascent & departure bank
+        const localP = p / 0.3;
+        flightGroup.position.set(1.5 + localP * 0.8, 0.4 + localP * 0.6 + bobY, -1.2 - localP * 1.5);
+        flightGroup.rotation.set(-0.08 + localP * 0.15, -0.25 - localP * 0.15, -0.15 + bobRoll);
+        camera.position.set(0, 1.0 + localP * 0.4, 13 - localP * 1.5);
+      } else if (p < 0.7) {
+        // Phase 2: Stratospheric High-Speed Transit
+        const localP = (p - 0.3) / 0.4;
+        flightGroup.position.set(2.3 - localP * 1.2, 1.0 + localP * 0.3 + bobY, -2.7 - localP * 2.0);
+        flightGroup.rotation.set(0.07, -0.4 + localP * 0.5, -0.15 + localP * 0.3 + bobRoll);
+        camera.position.set(0.2 - localP * 0.4, 1.4 + localP * 0.2, 11.5 - localP * 1.5);
       } else {
-        // Phase 4: Horizon descent & Docking
-        const localP = (p - 0.75) / 0.25;
-        jetGroup.position.set(-0.4 + localP * 0.4, 1.8 - localP * 1.2 + idleBobY, -4.5 - localP * 3.0);
-        jetGroup.rotation.set(0.05 - localP * 0.15, 0.1 - localP * 0.1, 0.1 - localP * 0.1 + idleRoll);
-        camera.position.set(0.4 - localP * 0.4, 2.8 - localP * 1.0, 6.0 - localP * 1.0);
+        // Phase 3: Horizon Descent & Approach
+        const localP = (p - 0.7) / 0.3;
+        flightGroup.position.set(1.1 + localP * 0.6, 1.3 - localP * 0.8 + bobY, -4.7 - localP * 2.5);
+        flightGroup.rotation.set(0.07 - localP * 0.12, 0.1 - localP * 0.2, 0.15 - localP * 0.2 + bobRoll);
+        camera.position.set(-0.2 + localP * 0.2, 1.6 - localP * 0.4, 10.0 - localP * 1.0);
       }
 
-      camera.lookAt(jetGroup.position.x * 0.4, jetGroup.position.y * 0.5, jetGroup.position.z);
-
-      // Move particle clouds backwards to give high-speed forward sensation
+      // Move particles forward
       const posArr = particleGeo.attributes.position.array as Float32Array;
-      const speedFactor = 0.12 + p * 0.25;
+      const speed = 0.1 + p * 0.2;
       for (let i = 0; i < particleCount; i++) {
-        posArr[i * 3 + 2] += speedFactor;
-        if (posArr[i * 3 + 2] > 20) {
-          posArr[i * 3 + 2] = -40;
-          posArr[i * 3] = (Math.random() - 0.5) * 45;
-          posArr[i * 3 + 1] = (Math.random() - 0.5) * 20;
+        posArr[i * 3 + 2] += speed;
+        if (posArr[i * 3 + 2] > 15) {
+          posArr[i * 3 + 2] = -25;
+          posArr[i * 3] = (Math.random() - 0.5) * 35;
+          posArr[i * 3 + 1] = (Math.random() - 0.5) * 16;
         }
       }
       particleGeo.attributes.position.needsUpdate = true;
 
-      // Pulse engine afterburner
-      const pulseScale = 1.0 + Math.sin(elapsedTime * 15) * 0.12;
-      glowR.scale.set(pulseScale, pulseScale, 1);
-      glowL.scale.set(pulseScale, pulseScale, 1);
+      // Pulse engine rings
+      const pulse = 1.0 + Math.sin(elapsedTime * 12) * 0.1;
+      rightThruster.scale.set(pulse, pulse, 1);
+      leftThruster.scale.set(pulse, pulse, 1);
+
+      // Subtle rotation of airway arcs
+      arcGroup.rotation.y = Math.sin(elapsedTime * 0.3) * 0.05;
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // 7. Responsive Resize Handler
     const handleResize = () => {
       if (!container) return;
       const newW = container.clientWidth;
@@ -310,24 +325,19 @@ export function ScrollFlightCanvas({ scrollProgress }: ScrollFlightCanvasProps) 
 
     window.addEventListener("resize", handleResize);
 
-    // 8. Cleanup on Unmount
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
       renderer.dispose();
       particleGeo.dispose();
-      cloudParticleMat.dispose();
-      aircraftMat.dispose();
-      glassMat.dispose();
+      particleMat.dispose();
+      fuselageGeo.dispose();
+      jetBodyMat.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
     };
   }, []);
-
-  if (isLowPower) {
-    return null;
-  }
 
   return (
     <div

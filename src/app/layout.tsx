@@ -16,32 +16,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AETHERIA — Next-Generation Flight Intelligence & Travel Platform",
+  title: "NextFlight — Modern Flight Search & Aviation Intelligence",
   description:
-    "Aviation reimagined. Direct international corridors, transparent airline pricing, cinematic 3D travel experiences, and effortless flight booking across 180+ global gateways.",
+    "Next-generation flight discovery. Direct international corridors, transparent airline pricing, interactive 3D seat maps, and effortless booking across global gateways.",
   keywords: [
+    "NextFlight",
     "flights",
     "airline booking",
-    "flight ticket",
+    "flight tickets",
     "business class",
     "first class",
-    "Google Flights alternative",
-    "Aetheria",
+    "flight search engine",
     "travel intelligence",
   ],
-  authors: [{ name: "Aetheria Aero Systems" }],
+  authors: [{ name: "NextFlight Aviation Technologies" }],
   openGraph: {
-    title: "AETHERIA — Next-Generation Flight Intelligence & Travel Platform",
+    title: "NextFlight — Modern Flight Search & Aviation Intelligence",
     description:
       "Direct international corridors, transparent airline pricing, and effortless flight booking.",
-    url: "https://aetheria.aero",
-    siteName: "AETHERIA",
+    url: "https://nextflight.aero",
+    siteName: "NextFlight",
     images: [
       {
         url: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=1200&q=80",
         width: 1200,
         height: 630,
-        alt: "AETHERIA Aviation Platform",
+        alt: "NextFlight Aviation Platform",
       },
     ],
     locale: "en_US",

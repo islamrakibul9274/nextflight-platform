@@ -8,8 +8,8 @@ export function FAQSection() {
 
   const faqs = [
     {
-      q: "How does Aetheria provide authoritative real-time pricing?",
-      a: "Aetheria links directly to global airline GDS and NDC aeronautical telemetry APIs. When you search or reserve a seat on our platform, the fare is immediately locked and verified on the authoritative central ledger, eliminating price jumps during checkout.",
+      q: "How does NextFlight provide authoritative real-time pricing?",
+      a: "NextFlight links directly to global airline GDS and NDC aeronautical telemetry APIs. When you search or reserve a seat on our platform, the fare is immediately locked and verified on the authoritative central ledger, eliminating price jumps during checkout.",
     },
     {
       q: "What is included with my ticket baggage allowance?",

@@ -1,154 +1,102 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { ScrollFlightCanvas } from "./ScrollFlightCanvas";
 import { HeroSearchWidget } from "./HeroSearchWidget";
-import { ShieldCheck, Compass, Sparkles, ChevronDown } from "lucide-react";
+import { ShieldCheck, Sparkles, Zap, Award, Compass, Plane } from "lucide-react";
 
 export function HeroSection() {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const totalScrollable = containerRef.current.clientHeight - window.innerHeight;
-      if (totalScrollable <= 0) return;
-
-      const currentScroll = -rect.top;
-      const progress = Math.min(Math.max(currentScroll / totalScrollable, 0), 1);
-      setScrollProgress(progress);
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalScroll > 0) {
+        const progress = Math.min(Math.max(window.scrollY / Math.min(totalScroll, 1600), 0), 1);
+        setScrollProgress(progress);
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-[260vh] bg-white">
-      {/* Sticky Viewport Container */}
-      <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between pt-20 pb-10">
-        {/* Three.js Canvas Layer */}
-        <ScrollFlightCanvas scrollProgress={scrollProgress} />
+    <section className="relative min-h-[92vh] flex flex-col justify-between pt-28 pb-16 overflow-hidden bg-mesh-canvas">
+      {/* 3D Atmospheric Flight Trajectory Canvas */}
+      <ScrollFlightCanvas scrollProgress={scrollProgress} />
 
-        {/* Ambient Subtle Gradient Tints */}
-        <div className="absolute inset-0 bg-radial from-sky-100/40 via-transparent to-white/70 pointer-events-none z-1" />
+      {/* Decorative Radial Glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-tr from-blue-200/30 to-indigo-200/20 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        {/* Top Header Story & Telemetry */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="flex flex-col items-center text-center space-y-4 pt-4 sm:pt-8">
-            {/* Live Telemetry Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/5 backdrop-blur-md border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
-              <span className="font-mono uppercase tracking-wider text-[11px]">
-                {scrollProgress < 0.25
-                  ? "Phase 01 // Tarmac Clearance & Pre-Flight"
-                  : scrollProgress < 0.5
-                  ? "Phase 02 // Rotation & High-Angle Climb"
-                  : scrollProgress < 0.75
-                  ? "Phase 03 // Stratospheric Cruise — FL380"
-                  : "Phase 04 // Approach & Destination Landing"}
-              </span>
-              <span className="text-slate-300">|</span>
-              <span className="text-sky-600 font-mono text-[11px]">
-                Alt: {Math.round(2000 + scrollProgress * 36000).toLocaleString()} FT
-              </span>
-            </div>
-
-            {/* Dynamic Scrolling Headlines with Opacity Transitions */}
-            <div className="relative h-28 sm:h-32 w-full max-w-4xl flex items-center justify-center">
-              {/* Phase 1 Overlay */}
-              <div
-                className={`absolute transition-all duration-500 transform ${
-                  scrollProgress < 0.28
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 -translate-y-4 scale-95 pointer-events-none"
-                }`}
-              >
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight font-sans">
-                  Your next journey,{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-indigo-600">
-                    beautifully booked.
-                  </span>
-                </h1>
-                <p className="mt-3 text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal">
-                  Ultra-fast flight intelligence, transparent airline pricing, and bespoke cabin comfort engineered for the discerning traveler.
-                </p>
-              </div>
-
-              {/* Phase 2 Overlay */}
-              <div
-                className={`absolute transition-all duration-500 transform ${
-                  scrollProgress >= 0.28 && scrollProgress < 0.55
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-4 scale-95 pointer-events-none"
-                }`}
-              >
-                <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
-                  Aviation Reimagined for{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-emerald-600">
-                    Pure Speed.
-                  </span>
-                </h2>
-                <p className="mt-3 text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
-                  Instant search across 180+ global airports, real-time seat pitch telemetry, and zero hidden baggage fees.
-                </p>
-              </div>
-
-              {/* Phase 3 Overlay */}
-              <div
-                className={`absolute transition-all duration-500 transform ${
-                  scrollProgress >= 0.55 && scrollProgress < 0.8
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-4 scale-95 pointer-events-none"
-                }`}
-              >
-                <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
-                  Stratospheric Luxury.{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-sky-600">
-                    Direct Connections.
-                  </span>
-                </h2>
-                <p className="mt-3 text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
-                  Fly Boeing 787-9 Dreamliners and Airbus A350-1000s with private lie-flat sky suites and chef-curated dining.
-                </p>
-              </div>
-
-              {/* Phase 4 Overlay */}
-              <div
-                className={`absolute transition-all duration-500 transform ${
-                  scrollProgress >= 0.8
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-4 scale-95 pointer-events-none"
-                }`}
-              >
-                <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
-                  Destination Unlocked.{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-slate-900">
-                    Select Your Route.
-                  </span>
-                </h2>
-                <p className="mt-3 text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
-                  Book direct with instant confirmation, e-ticket issuance, and 24/7 dedicated AI concierge support.
-                </p>
-              </div>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 my-auto">
+        {/* Editorial Headline & Telemetry Strip */}
+        <div className="text-center max-w-3xl mx-auto mb-10 space-y-4">
+          {/* Top Pill */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-slate-200 shadow-xs text-xs font-bold text-slate-800">
+            <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
+            <span className="text-blue-600 font-extrabold uppercase tracking-wide">NextFlight 2.0</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-600">The New Standard in Aviation Booking</span>
           </div>
+
+          {/* Majestic Hero Headline */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-950 tracking-tight leading-[1.08]">
+            Fly anywhere. <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 bg-clip-text text-transparent">
+              Book in seconds.
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Ultra-fast flight discovery, transparent airline fares, interactive 3D seat selection, and 24/7 AI concierge intelligence designed for modern travelers.
+          </p>
         </div>
 
-        {/* Interactive Flight Search Component Docked in Hero */}
-        <div className="relative z-20 w-full px-4 sm:px-6 lg:px-8 mt-auto pb-4">
-          <HeroSearchWidget />
+        {/* Search Engine Card */}
+        <HeroSearchWidget />
 
-          {/* Scroll Hint indicator */}
-          <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold text-slate-400">
-            <span className="flex items-center gap-1.5 bg-white/80 backdrop-blur-xs px-3 py-1 rounded-full border border-slate-200/80 shadow-2xs">
-              <Compass className="w-3.5 h-3.5 text-sky-600" />
-              Scroll to explore flight trajectory
-              <ChevronDown className="w-3.5 h-3.5 animate-bounce text-slate-400 ml-1" />
-            </span>
+        {/* Trust & Performance Proof Strip */}
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/80 border border-slate-200/80 shadow-xs backdrop-blur-xs">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <Zap className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900">Direct GDS Inventory</div>
+              <div className="text-[10px] text-slate-500">Sub-second live pricing</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/80 border border-slate-200/80 shadow-xs backdrop-blur-xs">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900">Guaranteed Rates</div>
+              <div className="text-[10px] text-slate-500">Zero hidden fees</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/80 border border-slate-200/80 shadow-xs backdrop-blur-xs">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+              <Plane className="w-4 h-4 -rotate-45" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900">Live 3D Cabin Maps</div>
+              <div className="text-[10px] text-slate-500">Real seat pitch specs</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/80 border border-slate-200/80 shadow-xs backdrop-blur-xs">
+            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900">AI Concierge</div>
+              <div className="text-[10px] text-slate-500">24/7 Smart assistance</div>
+            </div>
           </div>
         </div>
       </div>

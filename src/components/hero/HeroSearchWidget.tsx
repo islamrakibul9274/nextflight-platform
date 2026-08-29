@@ -3,19 +3,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  PlaneTakeoff,
-  PlaneLanding,
-  ArrowRightLeft,
+  Plane,
   Calendar,
   Users,
-  ChevronDown,
+  ArrowRightLeft,
   Search,
-  Check,
-  Building2,
   Sparkles,
+  ChevronDown,
+  Check,
+  MapPin,
 } from "lucide-react";
 
-interface AirportOption {
+interface AirportSuggestion {
   iataCode: string;
   name: string;
   city: string;
@@ -25,505 +24,391 @@ interface AirportOption {
 export function HeroSearchWidget() {
   const router = useRouter();
 
-  // Search state
+  // Search State
   const [tripType, setTripType] = useState<"ROUND_TRIP" | "ONE_WAY" | "MULTI_CITY">("ROUND_TRIP");
-  const [cabinClass, setCabinClass] = useState<string>("ECONOMY");
+  const [origin, setOrigin] = useState({ iata: "JFK", city: "New York", name: "John F. Kennedy Intl" });
+  const [destination, setDestination] = useState({ iata: "LHR", city: "London", name: "London Heathrow" });
+  const [departureDate, setDepartureDate] = useState("2026-09-05");
+  const [returnDate, setReturnDate] = useState("2026-09-12");
+  const [passengers, setPassengers] = useState(1);
+  const [cabinClass, setCabinClass] = useState("ECONOMY");
 
-  const [origin, setOrigin] = useState<AirportOption>({
-    iataCode: "JFK",
-    name: "John F. Kennedy International",
-    city: "New York",
-    country: "United States",
-  });
+  // Autocomplete UI Dropdowns
+  const [openOriginDropdown, setOpenOriginDropdown] = useState(false);
+  const [openDestDropdown, setOpenDestDropdown] = useState(false);
+  const [openPassengerDropdown, setOpenPassengerDropdown] = useState(false);
+  const [originQuery, setOriginQuery] = useState("");
+  const [destQuery, setDestQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<AirportSuggestion[]>([]);
 
-  const [destination, setDestination] = useState<AirportOption>({
-    iataCode: "LHR",
-    name: "London Heathrow",
-    city: "London",
-    country: "United Kingdom",
-  });
+  const originRef = useRef<HTMLDivElement>(null);
+  const destRef = useRef<HTMLDivElement>(null);
+  const passRef = useRef<HTMLDivElement>(null);
 
-  // Calculate default dates (departure in 5 days, return in 12 days)
-  const defaultDepDate = new Date();
-  defaultDepDate.setDate(defaultDepDate.getDate() + 5);
-  const defaultRetDate = new Date();
-  defaultRetDate.setDate(defaultRetDate.getDate() + 12);
-
-  const [departureDate, setDepartureDate] = useState(defaultDepDate.toISOString().split("T")[0]);
-  const [returnDate, setReturnDate] = useState(defaultRetDate.toISOString().split("T")[0]);
-
-  // Passengers
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
-  const [showPassengerModal, setShowPassengerModal] = useState(false);
-  const [showCabinModal, setShowCabinModal] = useState(false);
-
-  // Autocomplete modals
-  const [activeAirportField, setActiveAirportField] = useState<"origin" | "destination" | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [airportsList, setAirportsList] = useState<AirportOption[]>([]);
-  const [searchingAirports, setSearchingAirports] = useState(false);
-
-  const totalPassengers = adults + children + infants;
-
-  // Search airports
-  useEffect(() => {
-    if (!activeAirportField) return;
-
-    const timer = setTimeout(async () => {
-      setSearchingAirports(true);
-      try {
-        const res = await fetch(`/api/airports/autocomplete?q=${encodeURIComponent(searchQuery)}`);
-        const data = await res.json();
-        if (data.airports) {
-          setAirportsList(data.airports);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setSearchingAirports(false);
-      }
-    }, 150);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, activeAirportField]);
-
-  // Swap origin and destination
-  const handleSwap = () => {
-    const temp = origin;
-    setOrigin(destination);
-    setDestination(temp);
-  };
-
-  // Submit search
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams({
-      from: origin.iataCode,
-      to: destination.iataCode,
-      date: departureDate,
-      tripType,
-      cabin: cabinClass,
-      adults: adults.toString(),
-      children: children.toString(),
-      infants: infants.toString(),
-    });
-
-    if (tripType === "ROUND_TRIP" && returnDate) {
-      params.append("returnDate", returnDate);
-    }
-
-    router.push(`/search?${params.toString()}`);
-  };
-
-  const passengerModalRef = useRef<HTMLDivElement>(null);
-  const cabinModalRef = useRef<HTMLDivElement>(null);
-
-  // Close modals on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (passengerModalRef.current && !passengerModalRef.current.contains(event.target as Node)) {
-        setShowPassengerModal(false);
+      if (originRef.current && !originRef.current.contains(event.target as Node)) {
+        setOpenOriginDropdown(false);
       }
-      if (cabinModalRef.current && !cabinModalRef.current.contains(event.target as Node)) {
-        setShowCabinModal(false);
+      if (destRef.current && !destRef.current.contains(event.target as Node)) {
+        setOpenDestDropdown(false);
+      }
+      if (passRef.current && !passRef.current.contains(event.target as Node)) {
+        setOpenPassengerDropdown(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const fetchSuggestions = async (query: string) => {
+    if (!query || query.length < 1) {
+      setSuggestions([
+        { iataCode: "JFK", city: "New York", name: "John F. Kennedy Intl", country: "United States" },
+        { iataCode: "LHR", city: "London", name: "London Heathrow", country: "United Kingdom" },
+        { iataCode: "HND", city: "Tokyo", name: "Tokyo Haneda Airport", country: "Japan" },
+        { iataCode: "SIN", city: "Singapore", name: "Singapore Changi Airport", country: "Singapore" },
+        { iataCode: "DXB", city: "Dubai", name: "Dubai International", country: "United Arab Emirates" },
+        { iataCode: "SFO", city: "San Francisco", name: "San Francisco Intl", country: "United States" },
+        { iataCode: "CDG", city: "Paris", name: "Charles de Gaulle", country: "France" },
+      ]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/airports/autocomplete?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data.airports) {
+        setSuggestions(data.airports);
+      }
+    } catch {
+      // fallback
+    }
+  };
+
+  const handleSwapAirports = () => {
+    const temp = origin;
+    setOrigin(destination);
+    setDestination(temp);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    params.set("from", origin.iata);
+    params.set("to", destination.iata);
+    params.set("departure", departureDate);
+    if (tripType === "ROUND_TRIP") params.set("return", returnDate);
+    params.set("passengers", passengers.toString());
+    params.set("class", cabinClass);
+
+    router.push(`/search?${params.toString()}`);
+  };
+
   return (
-    <div className="relative w-full max-w-5xl mx-auto z-20">
-      {/* Container with premium white glassmorphism card */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.12)] p-4 sm:p-6 transition-all duration-300">
-        {/* Top Controls Row (Trip Type, Cabin, Passengers) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+    <div className="w-full max-w-5xl mx-auto">
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-[0_20px_50px_rgba(15,23,42,0.08)] relative z-20">
+        {/* Top Controls Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-100 mb-6">
           {/* Trip Type Tabs */}
-          <div className="flex items-center p-1 bg-slate-100/90 rounded-xl">
-            {(
-              [
-                { id: "ROUND_TRIP", label: "Round trip" },
-                { id: "ONE_WAY", label: "One way" },
-                { id: "MULTI_CITY", label: "Multi-city" },
-              ] as const
-            ).map((tab) => (
+          <div className="inline-flex p-1 bg-slate-100/90 rounded-2xl">
+            {[
+              { id: "ROUND_TRIP", label: "Round trip" },
+              { id: "ONE_WAY", label: "One way" },
+              { id: "MULTI_CITY", label: "Multi-city" },
+            ].map((t) => (
               <button
-                key={tab.id}
+                key={t.id}
                 type="button"
-                onClick={() => setTripType(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  tripType === tab.id
-                    ? "bg-white text-slate-900 shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
+                onClick={() => setTripType(t.id as typeof tripType)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  tripType === t.id
+                    ? "bg-white text-slate-900 shadow-xs"
+                    : "text-slate-500 hover:text-slate-900"
                 }`}
               >
-                {tab.label}
+                {t.label}
               </button>
             ))}
           </div>
 
-          {/* Passengers & Cabin Dropdowns */}
-          <div className="flex items-center gap-2">
-            {/* Passengers dropdown */}
-            <div className="relative" ref={passengerModalRef}>
+          {/* Passenger & Cabin Dropdown Controls */}
+          <div className="flex items-center gap-3" ref={passRef}>
+            {/* Passenger Selector */}
+            <div className="relative">
               <button
                 type="button"
-                onClick={() => setShowPassengerModal(!showPassengerModal)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:border-slate-300 text-xs font-medium text-slate-700 transition-colors"
+                onClick={() => setOpenPassengerDropdown(!openPassengerDropdown)}
+                className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-bold transition-all flex items-center gap-2"
               >
-                <Users className="w-3.5 h-3.5 text-sky-600" />
-                <span>
-                  {totalPassengers} Traveler{totalPassengers > 1 ? "s" : ""}
-                </span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
+                <Users className="w-3.5 h-3.5 text-blue-600" />
+                <span>{passengers} {passengers === 1 ? "Traveler" : "Travelers"}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
-              {showPassengerModal && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in zoom-in-95">
-                  <div className="space-y-4">
-                    {/* Adults */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-xs font-semibold text-slate-900">Adults</div>
-                        <div className="text-[10px] text-slate-500">Age 12+</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setAdults(Math.max(1, adults - 1))}
-                          className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 text-sm font-semibold"
-                        >
-                          -
-                        </button>
-                        <span className="text-xs font-bold w-4 text-center">{adults}</span>
-                        <button
-                          type="button"
-                          onClick={() => setAdults(Math.min(9, adults + 1))}
-                          className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 text-sm font-semibold"
-                        >
-                          +
-                        </button>
-                      </div>
+              {openPassengerDropdown && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in zoom-in-95">
+                  <div className="text-xs font-bold text-slate-900 mb-3">Select Passengers</div>
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                    <div>
+                      <div className="text-xs font-bold text-slate-800">Adults</div>
+                      <div className="text-[10px] text-slate-400">Age 12+</div>
                     </div>
-
-                    {/* Children */}
-                    <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-                      <div>
-                        <div className="text-xs font-semibold text-slate-900">Children</div>
-                        <div className="text-[10px] text-slate-500">Age 2-11</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setChildren(Math.max(0, children - 1))}
-                          className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 text-sm font-semibold"
-                        >
-                          -
-                        </button>
-                        <span className="text-xs font-bold w-4 text-center">{children}</span>
-                        <button
-                          type="button"
-                          onClick={() => setChildren(Math.min(6, children + 1))}
-                          className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 text-sm font-semibold"
-                        >
-                          +
-                        </button>
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={passengers <= 1}
+                        onClick={() => setPassengers(Math.max(1, passengers - 1))}
+                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-xs disabled:opacity-40"
+                      >
+                        -
+                      </button>
+                      <span className="font-bold text-xs w-4 text-center">{passengers}</span>
+                      <button
+                        type="button"
+                        disabled={passengers >= 9}
+                        onClick={() => setPassengers(Math.min(9, passengers + 1))}
+                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-xs disabled:opacity-40"
+                      >
+                        +
+                      </button>
                     </div>
-
-                    {/* Infants */}
-                    <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-                      <div>
-                        <div className="text-xs font-semibold text-slate-900">Infants</div>
-                        <div className="text-[10px] text-slate-500">Under 2 (on lap)</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setInfants(Math.max(0, infants - 1))}
-                          className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 text-sm font-semibold"
-                        >
-                          -
-                        </button>
-                        <span className="text-xs font-bold w-4 text-center">{infants}</span>
-                        <button
-                          type="button"
-                          onClick={() => setInfants(Math.min(adults, infants + 1))}
-                          className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 text-sm font-semibold"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setShowPassengerModal(false)}
-                      className="w-full mt-2 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800"
-                    >
-                      Done
-                    </button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Cabin dropdown */}
-            <div className="relative" ref={cabinModalRef}>
-              <button
-                type="button"
-                onClick={() => setShowCabinModal(!showCabinModal)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:border-slate-300 text-xs font-medium text-slate-700 transition-colors"
-              >
-                <span>{cabinClass.replace("_", " ")}</span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
-              </button>
-
-              {showCabinModal && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-slate-200 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95">
-                  {[
-                    { id: "ECONOMY", label: "Economy" },
-                    { id: "PREMIUM_ECONOMY", label: "Premium Economy" },
-                    { id: "BUSINESS", label: "Business Class" },
-                    { id: "FIRST", label: "First Class" },
-                  ].map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => {
-                        setCabinClass(c.id);
-                        setShowCabinModal(false);
-                      }}
-                      className="w-full text-left px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between"
-                    >
-                      <span>{c.label}</span>
-                      {cabinClass === c.id && <Check className="w-3.5 h-3.5 text-sky-600" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Cabin Class Selector */}
+            <select
+              value={cabinClass}
+              onChange={(e) => setCabinClass(e.target.value)}
+              className="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-bold transition-all outline-hidden cursor-pointer"
+            >
+              <option value="ECONOMY">Economy</option>
+              <option value="PREMIUM_ECONOMY">Premium Economy</option>
+              <option value="BUSINESS">Business Class</option>
+              <option value="FIRST">First Class</option>
+            </select>
           </div>
         </div>
 
-        {/* Main Search Inputs Grid */}
-        <form onSubmit={handleSearch} className="mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-stretch">
-            {/* Origin & Destination Block */}
-            <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-2 relative">
-              {/* Origin */}
-              <div
-                onClick={() => {
-                  setActiveAirportField("origin");
-                  setSearchQuery("");
-                }}
-                className="cursor-pointer p-3 rounded-xl border border-slate-200/90 hover:border-sky-500 bg-slate-50/50 hover:bg-white transition-all group relative"
-              >
-                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
-                  <PlaneTakeoff className="w-3.5 h-3.5 text-sky-600 group-hover:text-sky-600" />
-                  <span>Where from?</span>
-                </div>
-                <div className="mt-1 flex items-baseline justify-between">
-                  <span className="text-sm font-bold text-slate-900">{origin.city}</span>
-                  <span className="text-xs font-mono font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded">
-                    {origin.iataCode}
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-500 truncate">{origin.name}</div>
+        {/* Search Inputs Matrix */}
+        <form onSubmit={handleSearch} className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          {/* Origin & Destination Segment */}
+          <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-2 relative">
+            {/* Origin Input */}
+            <div
+              ref={originRef}
+              onClick={() => {
+                setOpenOriginDropdown(true);
+                fetchSuggestions(originQuery);
+              }}
+              className="p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/90 border border-slate-200/90 cursor-pointer transition-all relative"
+            >
+              <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+                <Plane className="w-3 h-3 text-blue-600 -rotate-45" /> Where From?
               </div>
-
-              {/* Swap Button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSwap();
-                }}
-                className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white border border-slate-200 hover:border-sky-500 shadow-2xs items-center justify-center text-slate-600 hover:text-sky-600 z-10 transition-all hover:scale-110 active:rotate-180"
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5" />
-              </button>
-
-              {/* Destination */}
-              <div
-                onClick={() => {
-                  setActiveAirportField("destination");
-                  setSearchQuery("");
-                }}
-                className="cursor-pointer p-3 rounded-xl border border-slate-200/90 hover:border-sky-500 bg-slate-50/50 hover:bg-white transition-all group relative"
-              >
-                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
-                  <PlaneLanding className="w-3.5 h-3.5 text-sky-600 group-hover:text-sky-600" />
-                  <span>Where to?</span>
-                </div>
-                <div className="mt-1 flex items-baseline justify-between">
-                  <span className="text-sm font-bold text-slate-900">{destination.city}</span>
-                  <span className="text-xs font-mono font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded">
-                    {destination.iataCode}
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-500 truncate">{destination.name}</div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-base font-extrabold text-slate-900 truncate">
+                  {origin.city}
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-mono text-xs font-extrabold border border-blue-200">
+                  {origin.iata}
+                </span>
               </div>
+              <div className="text-[11px] text-slate-400 truncate mt-0.5">{origin.name}</div>
+
+              {/* Origin Dropdown */}
+              {openOriginDropdown && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute left-0 top-full mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3 z-50"
+                >
+                  <div className="relative mb-2">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search origin city or airport..."
+                      value={originQuery}
+                      onChange={(e) => {
+                        setOriginQuery(e.target.value);
+                        fetchSuggestions(e.target.value);
+                      }}
+                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white outline-hidden"
+                    />
+                  </div>
+                  <div className="max-h-56 overflow-y-auto space-y-1">
+                    {suggestions.map((item) => (
+                      <div
+                        key={item.iataCode}
+                        onClick={() => {
+                          setOrigin({ iata: item.iataCode, city: item.city, name: item.name });
+                          setOpenOriginDropdown(false);
+                          setOriginQuery("");
+                        }}
+                        className="p-2.5 rounded-xl hover:bg-blue-50 cursor-pointer flex items-center justify-between transition-colors"
+                      >
+                        <div>
+                          <div className="text-xs font-bold text-slate-900">
+                            {item.city}, {item.country}
+                          </div>
+                          <div className="text-[10px] text-slate-400">{item.name}</div>
+                        </div>
+                        <span className="font-mono text-xs font-extrabold text-blue-600 bg-white px-2 py-0.5 rounded border border-blue-100">
+                          {item.iataCode}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Dates Block */}
-            <div className="lg:col-span-4 grid grid-cols-2 gap-2">
-              {/* Departure */}
-              <div className="p-3 rounded-xl border border-slate-200/90 hover:border-sky-500 bg-slate-50/50 hover:bg-white transition-all">
-                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
-                  <Calendar className="w-3.5 h-3.5 text-sky-600" />
-                  <span>Departure</span>
-                </div>
-                <input
-                  type="date"
-                  value={departureDate}
-                  min={new Date().toISOString().split("T")[0]}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  className="w-full mt-1 bg-transparent text-sm font-bold text-slate-900 outline-hidden cursor-pointer"
-                />
-              </div>
+            {/* Swap Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSwapAirports();
+              }}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white hover:bg-blue-50 border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 hover:text-blue-600 z-10 transition-transform active:rotate-180"
+              title="Swap Departure and Destination"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+            </button>
 
-              {/* Return (disabled if one way) */}
-              <div
-                className={`p-3 rounded-xl border transition-all ${
-                  tripType === "ONE_WAY"
-                    ? "opacity-40 bg-slate-100/60 border-slate-200 cursor-not-allowed"
-                    : "border-slate-200/90 hover:border-sky-500 bg-slate-50/50 hover:bg-white cursor-pointer"
-                }`}
-              >
-                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
-                  <Calendar className="w-3.5 h-3.5 text-sky-600" />
-                  <span>Return</span>
-                </div>
-                <input
-                  type="date"
-                  disabled={tripType === "ONE_WAY"}
-                  value={returnDate}
-                  min={departureDate || new Date().toISOString().split("T")[0]}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  className="w-full mt-1 bg-transparent text-sm font-bold text-slate-900 outline-hidden cursor-pointer disabled:cursor-not-allowed"
-                />
+            {/* Destination Input */}
+            <div
+              ref={destRef}
+              onClick={() => {
+                setOpenDestDropdown(true);
+                fetchSuggestions(destQuery);
+              }}
+              className="p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/90 border border-slate-200/90 cursor-pointer transition-all relative"
+            >
+              <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+                <MapPin className="w-3 h-3 text-indigo-600" /> Where To?
               </div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-base font-extrabold text-slate-900 truncate">
+                  {destination.city}
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-mono text-xs font-extrabold border border-indigo-200">
+                  {destination.iata}
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-400 truncate mt-0.5">{destination.name}</div>
+
+              {/* Destination Dropdown */}
+              {openDestDropdown && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3 z-50"
+                >
+                  <div className="relative mb-2">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search destination city or airport..."
+                      value={destQuery}
+                      onChange={(e) => {
+                        setDestQuery(e.target.value);
+                        fetchSuggestions(e.target.value);
+                      }}
+                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white outline-hidden"
+                    />
+                  </div>
+                  <div className="max-h-56 overflow-y-auto space-y-1">
+                    {suggestions.map((item) => (
+                      <div
+                        key={item.iataCode}
+                        onClick={() => {
+                          setDestination({ iata: item.iataCode, city: item.city, name: item.name });
+                          setOpenDestDropdown(false);
+                          setDestQuery("");
+                        }}
+                        className="p-2.5 rounded-xl hover:bg-indigo-50 cursor-pointer flex items-center justify-between transition-colors"
+                      >
+                        <div>
+                          <div className="text-xs font-bold text-slate-900">
+                            {item.city}, {item.country}
+                          </div>
+                          <div className="text-[10px] text-slate-400">{item.name}</div>
+                        </div>
+                        <span className="font-mono text-xs font-extrabold text-indigo-600 bg-white px-2 py-0.5 rounded border border-indigo-100">
+                          {item.iataCode}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Dates Segment */}
+          <div className="lg:col-span-4 grid grid-cols-2 gap-2">
+            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/90">
+              <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5 mb-1">
+                <Calendar className="w-3 h-3 text-blue-600" /> Departure
+              </label>
+              <input
+                type="date"
+                value={departureDate}
+                onChange={(e) => setDepartureDate(e.target.value)}
+                className="w-full bg-transparent text-sm font-extrabold text-slate-900 outline-hidden cursor-pointer"
+              />
             </div>
 
-            {/* Search CTA Button */}
-            <div className="lg:col-span-3">
-              <button
-                type="submit"
-                className="w-full h-full min-h-[56px] px-6 rounded-xl bg-slate-900 hover:bg-sky-600 text-white font-semibold text-sm shadow-md hover:shadow-sky-500/20 transition-all flex items-center justify-center gap-2 group cursor-pointer"
-              >
-                <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span>Search Flights</span>
-              </button>
+            <div className={`p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/90 ${tripType === "ONE_WAY" ? "opacity-50 pointer-events-none" : ""}`}>
+              <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5 mb-1">
+                <Calendar className="w-3 h-3 text-indigo-600" /> Return
+              </label>
+              <input
+                type="date"
+                disabled={tripType === "ONE_WAY"}
+                value={returnDate}
+                onChange={(e) => setReturnDate(e.target.value)}
+                className="w-full bg-transparent text-sm font-extrabold text-slate-900 outline-hidden cursor-pointer"
+              />
             </div>
+          </div>
+
+          {/* Search Button */}
+          <div className="lg:col-span-2 flex items-stretch">
+            <button
+              type="submit"
+              className="w-full h-full min-h-[58px] px-6 bg-slate-900 hover:bg-blue-600 text-white font-extrabold text-sm rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group cursor-pointer"
+            >
+              <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <span>Search</span>
+            </button>
           </div>
         </form>
 
-        {/* Airport Autocomplete Modal Dialog */}
-        {activeAirportField && (
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in-95">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-sky-600" />
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Select {activeAirportField === "origin" ? "Departure" : "Arrival"} Airport
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveAirportField(null)}
-                  className="text-xs font-semibold text-slate-400 hover:text-slate-600 px-2 py-1"
-                >
-                  Esc
-                </button>
-              </div>
-
-              {/* Search input */}
-              <div className="mt-4 relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder="Search city, country, or 3-letter IATA code (e.g. JFK, London, Tokyo)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-hidden focus:border-sky-500 focus:bg-white transition-all"
-                />
-              </div>
-
-              {/* Airport list */}
-              <div className="mt-4 max-h-64 overflow-y-auto space-y-1 pr-1">
-                {searchingAirports ? (
-                  <div className="py-8 text-center text-xs text-slate-400 font-medium animate-pulse">
-                    Scanning global aeronautical registry...
-                  </div>
-                ) : airportsList.length > 0 ? (
-                  airportsList.map((apt) => (
-                    <button
-                      key={apt.iataCode}
-                      type="button"
-                      onClick={() => {
-                        if (activeAirportField === "origin") setOrigin(apt);
-                        else setDestination(apt);
-                        setActiveAirportField(null);
-                      }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-sky-50/80 transition-colors flex items-center justify-between group"
-                    >
-                      <div className="flex flex-col">
-                        <div className="text-sm font-bold text-slate-900 group-hover:text-sky-700">
-                          {apt.city}, {apt.country}
-                        </div>
-                        <div className="text-xs text-slate-500">{apt.name}</div>
-                      </div>
-                      <span className="text-xs font-mono font-bold text-slate-700 group-hover:text-sky-600 bg-slate-100 group-hover:bg-white px-2 py-1 rounded-md border border-slate-200">
-                        {apt.iataCode}
-                      </span>
-                    </button>
-                  ))
-                ) : (
-                  <div className="py-6 text-center text-xs text-slate-400">
-                    No matching airports found. Try typing &apos;JFK&apos;, &apos;LHR&apos;, &apos;Tokyo&apos;, or &apos;Singapore&apos;.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Route Shortcuts Strip */}
-        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-          <span className="font-semibold text-slate-400 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-sky-500" /> Popular:
+        {/* Popular Quick Route Tags */}
+        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Popular:
           </span>
           {[
-            { label: "New York → London", from: "JFK", to: "LHR" },
-            { label: "San Francisco → Tokyo", from: "SFO", to: "HND" },
-            { label: "Dubai → Singapore", from: "DXB", to: "SIN" },
-            { label: "Paris → New York", from: "CDG", to: "JFK" },
-          ].map((route) => (
+            { from: "JFK", fromCity: "New York", to: "LHR", toCity: "London" },
+            { from: "SFO", fromCity: "San Francisco", to: "HND", toCity: "Tokyo" },
+            { from: "DXB", fromCity: "Dubai", to: "SIN", toCity: "Singapore" },
+            { from: "LHR", fromCity: "London", to: "CDG", toCity: "Paris" },
+          ].map((r, idx) => (
             <button
-              key={route.label}
+              key={idx}
               type="button"
               onClick={() => {
-                setOrigin({
-                  iataCode: route.from,
-                  city: route.label.split(" → ")[0],
-                  name: `${route.from} Airport`,
-                  country: "Global",
-                });
-                setDestination({
-                  iataCode: route.to,
-                  city: route.label.split(" → ")[1],
-                  name: `${route.to} Airport`,
-                  country: "Global",
-                });
+                setOrigin({ iata: r.from, city: r.fromCity, name: `${r.fromCity} International` });
+                setDestination({ iata: r.to, city: r.toCity, name: `${r.toCity} International` });
               }}
-              className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-sky-50 hover:text-sky-700 border border-slate-200/70 transition-colors font-medium"
+              className="px-3 py-1 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-blue-700 border border-slate-200/80 font-medium transition-colors"
             >
-              {route.label}
+              {r.fromCity} → {r.toCity}
             </button>
           ))}
         </div>

@@ -179,7 +179,7 @@ END:VCALENDAR`;
                 <Plane className="w-5 h-5 -rotate-45" />
               </div>
               <div>
-                <h2 className="text-lg font-bold tracking-wider">AETHERIA</h2>
+                <h2 className="text-lg font-bold tracking-wider">NEXTFLIGHT</h2>
                 <p className="text-xs text-slate-400">Electronic Passenger Boarding Pass</p>
               </div>
             </div>

@@ -304,7 +304,7 @@ export default function MyTripsPage() {
             <div className="bg-slate-950 text-white p-6 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Plane className="w-5 h-5 text-sky-400 -rotate-45" />
-                <span className="font-bold tracking-wider text-sm">AETHERIA BOARDING PASS</span>
+                <span className="font-bold tracking-wider text-sm">NEXTFLIGHT BOARDING PASS</span>
               </div>
               <button
                 type="button"

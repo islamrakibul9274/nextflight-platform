@@ -117,7 +117,7 @@ export function AddOnsSelector({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900">
-                Aetheria Global Travel Protection & Medical
+                NextFlight Global Travel Protection & Medical
               </h3>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Includes $100,000 emergency medical evacuation, 100% trip cancellation refund for any illness, and $2,500 lost baggage reimbursement.

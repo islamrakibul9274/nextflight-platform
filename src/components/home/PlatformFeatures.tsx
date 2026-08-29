@@ -49,10 +49,10 @@ export function PlatformFeatures() {
             <Sparkles className="w-3.5 h-3.5" /> Engineered Without Compromise
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
-            Why Discerning Travelers Choose Aetheria
+            Why Discerning Travelers Choose NextFlight
           </h2>
           <p className="mt-3 text-slate-600 text-sm sm:text-base">
-            Every layer of our infrastructure is calibrated to eliminate travel friction.
+            Every layer of our flight technology is engineered to eliminate travel friction.
           </p>
         </div>
 

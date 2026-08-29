@@ -49,10 +49,12 @@ export default function LoginPage() {
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">
               <Plane className="w-5 h-5 -rotate-45" />
             </div>
-            <span className="font-bold text-xl tracking-wider text-slate-900">AETHERIA</span>
+            <span className="font-extrabold text-xl tracking-tight text-slate-900">
+              Next<span className="text-blue-600">Flight</span>
+            </span>
           </Link>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             Sign In to Your Flight Portal
@@ -117,7 +119,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3.5 bg-slate-900 hover:bg-sky-600 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <span>{loading ? "Authenticating..." : "Sign In to Aetheria"}</span>
+              <span>{loading ? "Authenticating..." : "Sign In to NextFlight"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

@@ -37,14 +37,14 @@ export async function sendBookingConfirmationEmail({
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
         <div style="background: #0f172a; padding: 28px 32px; color: #ffffff;">
-          <h1 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.1em;">AETHERIA</h1>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.1em;">NEXTFLIGHT</h1>
           <p style="margin: 6px 0 0 0; font-size: 13px; color: #94a3b8;">Electronic Flight Ticket & Boarding Pass</p>
         </div>
         
         <div style="padding: 32px;">
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 24px; text-align: center;">
             <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Booking Reference (PNR)</div>
-            <div style="font-size: 28px; font-weight: 800; color: #0284c7; letter-spacing: 0.15em; margin-top: 4px;">${pnr}</div>
+            <div style="font-size: 28px; font-weight: 800; color: #2563eb; letter-spacing: 0.15em; margin-top: 4px;">${pnr}</div>
             <div style="font-size: 13px; color: #334155; margin-top: 4px;">Status: <strong>CONFIRMED & ISSUED</strong></div>
           </div>
 
@@ -74,7 +74,7 @@ export async function sendBookingConfirmationEmail({
               seatNumber
                 ? `<tr>
               <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 14px;">Assigned Seat</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #0284c7; font-size: 14px; text-align: right;">${seatNumber}</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #2563eb; font-size: 14px; text-align: right;">${seatNumber}</td>
             </tr>`
                 : ""
             }
@@ -90,16 +90,16 @@ export async function sendBookingConfirmationEmail({
         </div>
 
         <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 32px; font-size: 12px; color: #94a3b8; text-align: center;">
-          © 2026 Aetheria Aero Systems Inc. All rights reserved.<br />
-          Need assistance? Visit our 24/7 Concierge at <a href="http://localhost:3000/help" style="color: #0284c7;">aetheria.aero/help</a>
+          © 2026 NextFlight Aviation Technologies Inc. All rights reserved.<br />
+          Need assistance? Visit our 24/7 Concierge at <a href="http://localhost:3000/help" style="color: #2563eb;">nextflight.aero/help</a>
         </div>
       </div>
     `;
 
     const data = await resend.emails.send({
-      from: "Aetheria Flight Concierge <onboarding@resend.dev>",
+      from: "NextFlight Concierge <onboarding@resend.dev>",
       to: [to],
-      subject: `E-Ticket Confirmed [${pnr}] — ${origin} to ${destination} | Aetheria`,
+      subject: `E-Ticket Confirmed [${pnr}] — ${origin} to ${destination} | NextFlight`,
       html,
     });
 

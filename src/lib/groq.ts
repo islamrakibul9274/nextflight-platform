@@ -4,11 +4,11 @@ const apiKey = process.env.GROQ_API_KEY;
 
 export const groq = apiKey ? new Groq({ apiKey }) : null;
 
-export async function askAetheriaConcierge(
+export async function askNextFlightConcierge(
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>
 ): Promise<string> {
   if (!groq) {
-    return "Aetheria AI Concierge: I'm currently in demo mode. You can ask about baggage policies (1x 8kg cabin + 1x 23kg checked), refundable fares, Stratosphere member perks (up to 20% discount + free lounge pass), or flight routes across JFK, LHR, HND, DXB, and SIN.";
+    return "NextFlight AI Concierge: I'm currently in demo mode. You can ask about baggage policies (1x 8kg cabin + 1x 23kg checked), refundable fares, Stratosphere member perks (up to 20% discount + free lounge pass), or flight routes across JFK, LHR, HND, DXB, and SIN.";
   }
 
   try {
@@ -17,10 +17,10 @@ export async function askAetheriaConcierge(
       messages: [
         {
           role: "system",
-          content: `You are the AETHERIA AI Travel Concierge, a highly sophisticated, polite, and aviation-savvy digital assistant for Aetheria Airways and its global partner airline network.
+          content: `You are the NextFlight AI Travel Concierge, a highly sophisticated, polite, and aviation-savvy digital assistant for NextFlight and its global partner airline network.
           
-Key facts about AETHERIA:
-- Premium light-luxury flight booking platform.
+Key facts about NextFlight:
+- Premium flight booking and aviation intelligence platform.
 - Global hub network: JFK (New York), LHR (London), HND/NRT (Tokyo), SIN (Singapore), DXB (Dubai), CDG (Paris), SFO (San Francisco), LAX (Los Angeles), SYD (Sydney), FRA (Frankfurt), ZRH (Zurich).
 - Fleet: Boeing 787-9 Dreamliners, Airbus A350-1000s, Airbus A380-800s with ultra-quiet cabins, Starlink high-speed in-flight WiFi, and chef-curated dining.
 - Cabin Classes: Economy, Premium Economy (38" pitch), Business Class (Lie-flat suites with direct aisle access), First Class (Private sky suites).

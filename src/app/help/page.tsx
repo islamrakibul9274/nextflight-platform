@@ -25,7 +25,7 @@ export default function HelpPage() {
     {
       role: "assistant",
       content:
-        "Welcome to the Aetheria Concierge. I can assist you with real-time flight telemetry, baggage allowances, cabin suites, cancellation policies, or visa transit requirements for your journey. How may I serve you today?",
+        "Welcome to the NextFlight Concierge. I can assist you with real-time flight telemetry, baggage allowances, cabin suites, cancellation policies, or visa transit requirements for your journey. How may I serve you today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -114,7 +114,7 @@ export default function HelpPage() {
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold tracking-wide">Aetheria AI Travel Concierge</h3>
+                  <h3 className="text-sm font-bold tracking-wide">NextFlight AI Travel Concierge</h3>
                   <div className="flex items-center gap-1.5 text-[10px] text-sky-300">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span>Llama-3 Flight Intelligence Online</span>

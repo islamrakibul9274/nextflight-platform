@@ -81,7 +81,7 @@ export function FlightCard({ flight, cabinClass = "ECONOMY", passengerCount = 1 
       : flight.economySeatsAvailable;
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 hover:border-sky-500/80 bg-white shadow-2xs hover:shadow-md transition-all duration-200 overflow-hidden">
+    <div className="rounded-3xl border border-slate-200/90 hover:border-blue-500/80 bg-white shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden">
       {/* Main Row */}
       <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         {/* Left Col: Airline & Times */}

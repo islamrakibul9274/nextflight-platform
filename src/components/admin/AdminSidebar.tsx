@@ -47,7 +47,7 @@ export function AdminSidebar() {
             </div>
             <div>
               <div className="font-bold text-sm text-white tracking-wider font-mono">
-                AETHERIA ADMIN
+                NEXTFLIGHT ADMIN
               </div>
               <div className="text-[10px] text-sky-400 font-medium">Enterprise Console</div>
             </div>
