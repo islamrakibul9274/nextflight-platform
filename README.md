@@ -6,7 +6,7 @@ A high-performance, production-grade **Next.js 16** application designed for sea
 
 ## 🚀 Live Links
 
-* **Production Application (Netlify):** [https://nextflight-platform-2026.netlify.app/](https://nextflight-platform-2026.netlify.app/)
+* **Production Application (Netlify):** [https://nextflight-platform-2026.netlify.app/](https://nextflight-platform-2026.netlify.app/) — latest deploy verified live (commit `d2d062c`: secure auth, Stripe checkout, paid memberships, light UI overhaul)
 * **GitHub Repository:** [https://github.com/islamrakibul9274/nextflight-platform](https://github.com/islamrakibul9274/nextflight-platform)
 
 ---
