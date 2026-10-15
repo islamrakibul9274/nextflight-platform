@@ -1,14 +1,24 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Coupon } from "@/models/Coupon";
+import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
+import { serverError, rateLimited, badRequest } from "@/lib/api-error";
+import { z } from "zod";
+
+const Schema = z.object({
+  code: z.string().trim().min(2).max(30),
+  orderAmount: z.number().min(0).max(1000000),
+});
 
 export async function POST(req: Request) {
   try {
-    const { code, orderAmount } = await req.json();
+    const rl = checkRateLimit(getClientKey(req, "coupon"), 30, 60_000);
+    if (!rl.allowed) return rateLimited(rl.resetAt);
 
-    if (!code) {
-      return NextResponse.json({ error: "Coupon code is required" }, { status: 400 });
-    }
+    const body = await req.json();
+    const parsed = Schema.safeParse(body);
+    if (!parsed.success) return badRequest(parsed.error.issues[0].message);
+    const { code, orderAmount } = parsed.data;
 
     await connectDB();
     const coupon = await Coupon.findOne({
@@ -54,8 +64,6 @@ export async function POST(req: Request) {
       newTotal: Math.round(orderAmount - discountAmount),
     });
   } catch (error: unknown) {
-    const err = error as Error;
-    console.error("Coupon validation error:", err);
-    return NextResponse.json({ error: err.message || "Failed to validate coupon" }, { status: 500 });
+    return serverError("Coupon validation error", error);
   }
 }

@@ -4,22 +4,20 @@ import { Booking } from "@/models/Booking";
 import { Flight } from "@/models/Flight";
 import { User } from "@/models/User";
 import { Airport } from "@/models/Airport";
-import { getSessionUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
+import { serverError, forbidden } from "@/lib/api-error";
 
 export async function GET() {
   try {
-    const session = await getSessionUser();
-    // Allow in development or if role is ADMIN
-    if (session && session.role !== "ADMIN" && process.env.NODE_ENV === "production") {
-      return NextResponse.json({ error: "Unauthorized access to admin portal" }, { status: 403 });
-    }
+    const admin = await requireAdmin();
+    if (!admin) return forbidden("Admin access required");
 
     await connectDB();
 
     const [bookings, flights, users, airports] = await Promise.all([
       Booking.find({}).sort({ createdAt: -1 }).limit(100).lean(),
-      Flight.find({}).lean(),
-      User.find({}).lean(),
+      Flight.find({}).select("flightNumber originAirport destinationAirport status basePrice").lean(),
+      User.find({}).select("-passwordHash").lean(),
       Airport.find({}).lean(),
     ]);
 
@@ -82,8 +80,6 @@ export async function GET() {
       recentBookings: bookings.slice(0, 10),
     });
   } catch (error: unknown) {
-    const err = error as Error;
-    console.error("Admin stats error:", err);
-    return NextResponse.json({ error: err.message || "Failed to fetch admin statistics" }, { status: 500 });
+    return serverError("Admin stats error", error);
   }
 }

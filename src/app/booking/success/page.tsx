@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import {
@@ -21,14 +21,21 @@ import { formatFlightTime, formatFullDate, formatDuration } from "@/lib/utils";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const pnr = searchParams.get("pnr") || "AET-789X4K";
+  const pnr = searchParams.get("pnr")?.trim().toUpperCase() || "";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [bookingData, setBookingData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
+    if (!pnr) {
+      void Promise.resolve().then(() => {
+        setLoading(false);
+        setFetchError("Missing booking reference. Check your email or My Trips for the PNR.");
+      });
+      return;
+    }
     // Fire celebratory confetti on mount
     try {
       confetti({
@@ -44,19 +51,19 @@ function SuccessContent() {
       try {
         const res = await fetch(`/api/bookings/${pnr}`);
         const data = await res.json();
-        if (data.booking) {
-          setBookingData(data.booking);
+        if (!res.ok || !data.booking) {
+          setFetchError(data.error || "Booking not found. Verify the PNR and try again.");
+          return;
         }
-      } catch (e) {
-        console.error("Fetch booking error:", e);
+        setBookingData(data.booking);
+      } catch {
+        setFetchError("Network error. Check your connection and retry.");
       } finally {
         setLoading(false);
       }
     }
 
-    if (pnr) {
-      fetchBooking();
-    }
+    void Promise.resolve().then(() => fetchBooking());
   }, [pnr]);
 
   const handlePrint = () => {
@@ -91,29 +98,43 @@ END:VCALENDAR`;
     document.body.removeChild(link);
   };
 
-  const flight = bookingData?.flightId || {
-    flightNumber: "AE-402",
-    airlineName: "Aetheria Flagship",
-    airlineLogo: "✈️",
-    originAirport: "JFK",
-    originCity: "New York",
-    destinationAirport: "LHR",
-    destinationCity: "London",
-    departureTime: new Date(Date.now() + 86400000 * 3).toISOString(),
-    arrivalTime: new Date(Date.now() + 86400000 * 3 + 7 * 3600000).toISOString(),
-    durationMinutes: 420,
-    aircraftModel: "Boeing 787-9",
-    terminalDeparture: "T4",
-    terminalArrival: "T2",
-    gateDeparture: "A12",
-  };
+  const flight = bookingData?.flightId || null;
 
-  const passenger = bookingData?.passengers?.[0] || {
-    firstName: "Alex",
-    lastName: "Thorne",
-    seatNumber: "14A",
-    ticketNumber: `016-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-  };
+  const passenger = bookingData?.passengers?.[0] || null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50/70 pt-24 pb-20">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center" role="status">
+            <div className="w-8 h-8 mx-auto rounded-full border-2 border-slate-300 border-t-sky-600 animate-spin" aria-hidden />
+            <p className="text-xs font-semibold text-slate-500 mt-4">Loading your e-ticket...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchError || !bookingData || !flight || !passenger) {
+    return (
+      <div className="min-h-screen bg-slate-50/70 pt-24 pb-20">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-lg p-12 text-center space-y-4" role="alert">
+            <h1 className="text-xl font-extrabold text-slate-900">Booking not found</h1>
+            <p className="text-sm text-slate-600 max-w-md mx-auto">{fetchError || "We could not load this booking."}</p>
+            <div className="flex justify-center gap-3">
+              <Link href="/my-trips" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold">
+                Go to My Trips
+              </Link>
+              <Link href="/search" className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
+                Search Flights
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/70 pt-24 pb-20 print:bg-white print:p-0">
@@ -173,7 +194,7 @@ END:VCALENDAR`;
         {/* Boarding Pass / E-Ticket Card (Printable) */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden mb-8 print:border-0 print:shadow-none">
           {/* Header Strip */}
-          <div className="bg-slate-950 text-white p-6 sm:p-8 flex items-center justify-between">
+          <div className="bg-sky-600 text-white p-6 sm:p-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white text-slate-950 flex items-center justify-center font-bold">
                 <Plane className="w-5 h-5 -rotate-45" />

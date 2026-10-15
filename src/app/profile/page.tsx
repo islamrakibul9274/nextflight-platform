@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { TierBadge } from "@/components/ui/TierBadge";
 import {
   User,
   Mail,
@@ -83,7 +84,7 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    fetchTravelers();
+    void Promise.resolve().then(() => fetchTravelers());
   }, []);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -165,8 +166,9 @@ export default function ProfilePage() {
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-xs font-semibold uppercase tracking-wider mb-2">
             <User className="w-3.5 h-3.5" /> Traveler Profile & Companions
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3 flex-wrap">
             Account Preferences
+            <TierBadge tier={user?.membershipTier} />
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Manage your personal travel documents, passport records, and saved companion travelers.
@@ -384,7 +386,7 @@ export default function ProfilePage() {
 
           {/* Right Column: Membership Card */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
+            <div className="bg-gradient-to-br from-sky-600 to-blue-700 text-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-48 h-48 bg-sky-500/20 rounded-full blur-3xl pointer-events-none" />
 
               <div className="flex items-center justify-between">

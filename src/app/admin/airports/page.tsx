@@ -53,7 +53,7 @@ export default function AdminAirportsPage() {
   };
 
   useEffect(() => {
-    fetchAirports();
+    void Promise.resolve().then(() => fetchAirports());
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {

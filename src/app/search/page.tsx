@@ -26,7 +26,8 @@ function SearchContent() {
   const [from, setFrom] = useState(searchParams.get("from") || "JFK");
   const [to, setTo] = useState(searchParams.get("to") || "LHR");
   const [date, setDate] = useState(
-    searchParams.get("date") ||
+    () =>
+      searchParams.get("date") ||
       new Date(Date.now() + 5 * 86400000).toISOString().split("T")[0]
   );
   const [cabin, setCabin] = useState(searchParams.get("cabin") || "ECONOMY");
@@ -114,7 +115,7 @@ function SearchContent() {
   }, [from, to, date, cabin, filters, sortBy]);
 
   useEffect(() => {
-    fetchFlights();
+    void Promise.resolve().then(() => fetchFlights());
   }, [fetchFlights]);
 
   const handleSwapAirports = () => {
@@ -210,7 +211,7 @@ function SearchContent() {
                   <button
                     type="button"
                     onClick={handleSwapAirports}
-                    className="w-8 h-8 rounded-full bg-zinc-950 hover:bg-blue-600 text-white shadow-2xs flex items-center justify-center shrink-0 transition-transform active:rotate-180 cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-slate-950 hover:bg-slate-800 text-white shadow-2xs flex items-center justify-center shrink-0 transition-transform active:rotate-180 cursor-pointer"
                     title="Swap Origin and Destination"
                   >
                     <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -260,7 +261,7 @@ function SearchContent() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full h-[52px] px-5 rounded-2xl bg-zinc-950 hover:bg-blue-600 text-white font-extrabold text-xs tracking-wider uppercase shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  className="w-full h-[52px] px-5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-extrabold text-xs tracking-wider uppercase shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   <Search className="w-4 h-4" />
                   <span>Update</span>
@@ -361,7 +362,7 @@ function SearchContent() {
                       refundableOnly: false,
                     });
                   }}
-                  className="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-semibold hover:bg-zinc-800 cursor-pointer"
+                  className="px-4 py-2 bg-slate-950 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 cursor-pointer"
                 >
                   Reset All Filters
                 </button>
@@ -397,7 +398,7 @@ function SearchContent() {
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(false)}
-              className="w-full py-3 bg-zinc-950 text-white rounded-xl text-xs font-bold cursor-pointer"
+              className="w-full py-3 bg-slate-950 text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-slate-800"
             >
               Apply Filters
             </button>

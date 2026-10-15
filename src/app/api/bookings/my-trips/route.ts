@@ -1,23 +1,20 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Booking } from "@/models/Booking";
-import { getSessionUser } from "@/lib/auth";
+import "@/models/Flight"; // register schema for populate("flightId", "returnFlightId")
+import { getCurrentUserFromDb } from "@/lib/auth";
+import { serverError, unauthorized } from "@/lib/api-error";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const session = await getSessionUser();
-    const { searchParams } = new URL(req.url);
-    const emailQuery = searchParams.get("email");
-
-    const email = session?.email || emailQuery;
-
-    if (!email) {
-      return NextResponse.json({ bookings: [] });
-    }
+    const dbUser = await getCurrentUserFromDb();
+    if (!dbUser) return unauthorized("Sign in to view your trips");
 
     await connectDB();
 
-    const bookings = await Booking.find({ userEmail: email.toLowerCase() })
+    const bookings = await Booking.find({
+      $or: [{ userId: dbUser._id }, { userEmail: dbUser.email.toLowerCase() }],
+    })
       .populate("flightId")
       .populate("returnFlightId")
       .sort({ createdAt: -1 })
@@ -25,8 +22,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ bookings });
   } catch (error: unknown) {
-    const err = error as Error;
-    console.error("My trips error:", err);
-    return NextResponse.json({ bookings: [], error: err.message }, { status: 500 });
+    return serverError("My trips error", error);
   }
 }

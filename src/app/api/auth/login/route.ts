@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
-import { verifyPassword, signToken } from "@/lib/auth";
+import { verifyPassword, signToken, getAuthCookieFlags, AUTH_COOKIE_NAME } from "@/lib/auth";
+import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
+import { serverError, rateLimited } from "@/lib/api-error";
 import { z } from "zod";
 
 const LoginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email("Enter a valid email address"),
   password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().optional().default(true),
 });
 
 export async function POST(req: Request) {
   try {
+    const rl = checkRateLimit(getClientKey(req, "login"), 10, 60_000);
+    if (!rl.allowed) return rateLimited(rl.resetAt);
+
     const body = await req.json();
     const parsed = LoginSchema.safeParse(body);
 
@@ -21,7 +27,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password } = parsed.data;
+    const { email, password, rememberMe } = parsed.data;
 
     await connectDB();
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = signToken(user);
+    const token = signToken(user, rememberMe);
     const response = NextResponse.json({
       success: true,
       user: {
@@ -56,21 +62,10 @@ export async function POST(req: Request) {
       },
     });
 
-    response.cookies.set("aetheria_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieFlags(rememberMe));
 
     return response;
   } catch (error: unknown) {
-    const err = error as Error;
-    console.error("Login error:", err);
-    return NextResponse.json(
-      { error: err.message || "Internal server error" },
-      { status: 500 }
-    );
+    return serverError("Login error", error);
   }
 }

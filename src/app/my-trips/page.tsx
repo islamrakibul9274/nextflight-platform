@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/Toast";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { LoadingSpinner, EmptyState } from "@/components/ui/primitives";
 import {
   Ticket,
   Plane,
@@ -20,7 +24,9 @@ import {
 import { formatFlightTime, formatFullDate, formatDuration } from "@/lib/utils";
 
 export default function MyTripsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const { notify } = useToast();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [trips, setTrips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,27 +39,39 @@ export default function MyTripsPage() {
   const [cancelModalBooking, setCancelModalBooking] = useState<any | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [cancelSuccessMsg, setCancelSuccessMsg] = useState("");
+  const [fetchError, setFetchError] = useState("");
 
   const fetchTrips = async () => {
     setLoading(true);
+    setFetchError("");
     try {
-      const email = user?.email || "traveler@aetheria.com";
-      const res = await fetch(`/api/bookings/my-trips?email=${encodeURIComponent(email)}`);
-      const data = await res.json();
-      if (data.bookings) {
-        setTrips(data.bookings);
+      const res = await fetch(`/api/bookings/my-trips`, { cache: "no-store" });
+      if (res.status === 401) {
+        router.push("/login?next=/my-trips");
+        return;
       }
-    } catch (e) {
-      console.error("Fetch trips error:", e);
+      const data = await res.json();
+      if (!res.ok) {
+        setFetchError(data.error || "Failed to load trips.");
+        return;
+      }
+      setTrips(data.bookings || []);
+    } catch {
+      setFetchError("Network error. Check your connection and retry.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTrips();
+    if (authLoading) return;
+    if (!user) {
+      router.push("/login?next=/my-trips");
+      return;
+    }
+    void Promise.resolve().then(() => fetchTrips());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, authLoading]);
 
   const handleCancelBooking = async (pnr: string) => {
     setCancelling(true);
@@ -63,15 +81,18 @@ export default function MyTripsPage() {
       });
       const data = await res.json();
       if (data.success) {
+        notify(`Booking ${pnr} cancelled. Refund $${data.refundAmount} processed.`, "success");
         setCancelSuccessMsg(data.message);
         setTimeout(() => {
           setCancelModalBooking(null);
           setCancelSuccessMsg("");
           fetchTrips();
         }, 2000);
+      } else {
+        notify(data.error || "Failed to cancel booking.", "error");
       }
-    } catch (e) {
-      console.error("Cancel booking error:", e);
+    } catch {
+      notify("Network error while cancelling.", "error");
     } finally {
       setCancelling(false);
     }
@@ -80,7 +101,7 @@ export default function MyTripsPage() {
   const filteredTrips = trips.filter((t) => {
     if (tab === "CANCELLED") return t.status === "CANCELLED" || t.status === "REFUNDED";
     if (tab === "COMPLETED") return t.status === "COMPLETED";
-    return t.status === "CONFIRMED" || t.status === "CHECKED_IN";
+    return t.status === "CONFIRMED" || t.status === "CHECKED_IN" || t.status === "PENDING";
   });
 
   return (
@@ -131,6 +152,13 @@ export default function MyTripsPage() {
         </div>
 
         {/* Trips List */}
+        {fetchError && (
+          <div role="alert" className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-2xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" aria-hidden />
+            <span>{fetchError}</span>
+            <button onClick={fetchTrips} className="ml-auto underline font-bold">Retry</button>
+          </div>
+        )}
         {loading ? (
           <div className="space-y-4">
             {[1, 2].map((n) => (
@@ -301,7 +329,7 @@ export default function MyTripsPage() {
       {selectedTicket && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="bg-slate-950 text-white p-6 flex items-center justify-between">
+            <div className="bg-sky-600 text-white p-6 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Plane className="w-5 h-5 text-sky-400 -rotate-45" />
                 <span className="font-bold tracking-wider text-sm">NEXTFLIGHT BOARDING PASS</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { User, Mail, Phone, Globe, Shield, Calendar, Award } from "lucide-react";
+import { User, Mail, ChevronDown, Sparkles } from "lucide-react";
 
 export interface PassengerData {
   type: "ADULT" | "CHILD" | "INFANT";
@@ -26,7 +26,43 @@ interface PassengerFormProps {
   contactPhone: string;
   onUpdatePassenger: (index: number, field: keyof PassengerData, value: string) => void;
   onUpdateContact: (field: "contactName" | "contactEmail" | "contactPhone", value: string) => void;
-  onAutofillDemo: () => void;
+  onFillFromProfile: () => void;
+  onFillDemo: () => void;
+}
+
+function Select({
+  id,
+  name,
+  value,
+  onChange,
+  label,
+  children,
+}: {
+  id: string;
+  name: string;
+  value: string;
+  onChange: (value: string) => void;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative">
+      <select
+        id={id}
+        name={name}
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full appearance-none truncate pl-3.5 pr-10 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-medium text-zinc-900 focus:bg-white focus:border-blue-600 outline-none focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+      >
+        {children}
+      </select>
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-zinc-400"
+      />
+    </div>
+  );
 }
 
 export function PassengerForm({
@@ -36,7 +72,8 @@ export function PassengerForm({
   contactPhone,
   onUpdatePassenger,
   onUpdateContact,
-  onAutofillDemo,
+  onFillFromProfile,
+  onFillDemo,
 }: PassengerFormProps) {
   return (
     <div className="space-y-8">
@@ -52,13 +89,23 @@ export function PassengerForm({
               E-tickets, gate change alerts, and boarding passes will be sent here.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onAutofillDemo}
-            className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors cursor-pointer"
-          >
-            ⚡ Auto-Fill Demo Traveler
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onFillDemo}
+              className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg border border-sky-200 transition-colors cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" aria-hidden />
+              Fill demo details
+            </button>
+            <button
+              type="button"
+              onClick={onFillFromProfile}
+              className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors cursor-pointer"
+            >
+              Use my profile details
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -134,18 +181,18 @@ export function PassengerForm({
             {/* Title */}
             <div className="sm:col-span-2">
               <label htmlFor={`passenger-${idx}-title`} className="text-xs font-bold text-zinc-700 block mb-1.5">Title</label>
-              <select
+              <Select
                 id={`passenger-${idx}-title`}
                 name={`passenger_${idx}_title`}
+                label="Title"
                 value={p.title}
-                onChange={(e) => onUpdatePassenger(idx, "title", e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-medium text-zinc-900 focus:bg-white focus:border-blue-600 outline-hidden transition-all cursor-pointer"
+                onChange={(v) => onUpdatePassenger(idx, "title", v)}
               >
                 <option value="Mr">Mr</option>
                 <option value="Ms">Ms</option>
                 <option value="Mrs">Mrs</option>
                 <option value="Dr">Dr</option>
-              </select>
+              </Select>
             </div>
 
             {/* First Name */}
@@ -204,17 +251,17 @@ export function PassengerForm({
             {/* Gender */}
             <div className="sm:col-span-4">
               <label htmlFor={`passenger-${idx}-gender`} className="text-xs font-bold text-zinc-700 block mb-1.5">Gender</label>
-              <select
+              <Select
                 id={`passenger-${idx}-gender`}
                 name={`passenger_${idx}_gender`}
+                label="Gender"
                 value={p.gender}
-                onChange={(e) => onUpdatePassenger(idx, "gender", e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-medium text-zinc-900 focus:bg-white focus:border-blue-600 outline-hidden transition-all cursor-pointer"
+                onChange={(v) => onUpdatePassenger(idx, "gender", v)}
               >
                 <option value="MALE">Male</option>
                 <option value="FEMALE">Female</option>
                 <option value="UNDISCLOSED">Undisclosed</option>
-              </select>
+              </Select>
             </div>
 
             {/* Nationality */}
@@ -222,12 +269,12 @@ export function PassengerForm({
               <label htmlFor={`passenger-${idx}-nationality`} className="text-xs font-bold text-zinc-700 block mb-1.5">
                 Nationality
               </label>
-              <select
+              <Select
                 id={`passenger-${idx}-nationality`}
                 name={`passenger_${idx}_nationality`}
+                label="Nationality"
                 value={p.nationality}
-                onChange={(e) => onUpdatePassenger(idx, "nationality", e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-medium text-zinc-900 focus:bg-white focus:border-blue-600 outline-hidden transition-all cursor-pointer"
+                onChange={(v) => onUpdatePassenger(idx, "nationality", v)}
               >
                 <option value="US">United States (US)</option>
                 <option value="GB">United Kingdom (GB)</option>
@@ -238,7 +285,7 @@ export function PassengerForm({
                 <option value="DE">Germany (DE)</option>
                 <option value="FR">France (FR)</option>
                 <option value="AE">United Arab Emirates (AE)</option>
-              </select>
+              </Select>
             </div>
 
             {/* Passport Number */}

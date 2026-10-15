@@ -108,7 +108,7 @@ export default function HelpPage() {
           {/* Left Column: AI Concierge Interactive Chat Console */}
           <div className="lg:col-span-8 bg-white rounded-3xl border border-slate-200/90 shadow-2xs flex flex-col h-[640px] overflow-hidden">
             {/* Console Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-900 text-white flex items-center justify-between">
+            <div className="p-4 sm:p-5 border-b border-sky-100 bg-sky-600 text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white font-bold">
                   <Bot className="w-5 h-5" />
@@ -250,7 +250,7 @@ export default function HelpPage() {
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl bg-slate-900 text-white space-y-3 shadow-md">
+            <div className="p-6 rounded-3xl bg-sky-50 text-slate-900 space-y-3 shadow-sm border border-sky-100">
               <h4 className="text-sm font-bold">Need Immediate Human Assistance?</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Our operations desk operates 24 hours a day. Stratosphere Club members enjoy dedicated phone dispatch lines.

@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-500: #0284c7;
+  --color-brand-600: #0369a1;
+  --color-ink-900: #0f172a;
+  --color-ink-950: #020617;
+  --radius-xl2: 1rem;
+  --radius-xl3: 1.5rem;
+}
+
 @layer base {
   :root {
     --background: 255 255 255;
@@ -19,12 +30,55 @@ html {
   color-scheme: light;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   background-color: #ffffff;
   color: #09090b;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+
+/* Immersive hero motion */
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes route-dash-move {
+  to { stroke-dashoffset: -28; }
+}
+
+.float-soft {
+  animation: hero-float 5s ease-in-out infinite;
+}
+
+.float-delayed {
+  animation-delay: 2.5s;
+}
+
+.route-dash {
+  animation: route-dash-move 3.5s linear infinite;
+}
+
+.route-dash-slow {
+  animation-duration: 6s;
 }
 
 /* Subtle architectural dot grid */

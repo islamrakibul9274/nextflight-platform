@@ -39,7 +39,7 @@ export default function AdminFlightsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   // New Flight Form
-  const [newFlight, setNewFlight] = useState({
+  const [newFlight, setNewFlight] = useState(() => ({
     flightNumber: "AE-510",
     airlineCode: "AE",
     airlineName: "Aetheria Flagship Airways",
@@ -59,7 +59,7 @@ export default function AdminFlightsPage() {
     economySeatsAvailable: 180,
     status: "SCHEDULED",
     refundable: true,
-  });
+  }));
 
   const fetchFlights = async () => {
     setLoading(true);
@@ -81,7 +81,7 @@ export default function AdminFlightsPage() {
   };
 
   useEffect(() => {
-    fetchFlights();
+    void Promise.resolve().then(() => fetchFlights());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, statusFilter]);
 

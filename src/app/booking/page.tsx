@@ -39,31 +39,31 @@ function BookingContent() {
   const [cabinClass, setCabinClass] = useState(initialCabin);
   const [selectedFareTier, setSelectedFareTier] = useState<"BASIC" | "STANDARD" | "FLEX">("STANDARD");
 
-  // Contact Info
-  const [contactName, setContactName] = useState(user?.name || "Alex Thorne");
-  const [contactEmail, setContactEmail] = useState(user?.email || "traveler@aetheria.com");
-  const [contactPhone, setContactPhone] = useState(user?.phone || "+1 (555) 839-1029");
+  // Contact Info — prefill from session when available, otherwise blank
+  const [contactName, setContactName] = useState(user?.name || "");
+  const [contactEmail, setContactEmail] = useState(user?.email || "");
+  const [contactPhone, setContactPhone] = useState(user?.phone || "");
 
   // Passengers
   const [passengers, setPassengers] = useState<PassengerData[]>(() =>
-    Array.from({ length: passengerCountParam }, (_, i) => ({
+    Array.from({ length: Math.min(Math.max(passengerCountParam, 1), 9) }, () => ({
       type: "ADULT",
       title: "Mr",
-      firstName: i === 0 && user?.name ? user.name.split(" ")[0] : i === 0 ? "Alex" : `Traveler`,
-      lastName: i === 0 && user?.name ? user.name.split(" ")[1] || "Thorne" : i === 0 ? "Thorne" : `${i + 1}`,
-      dateOfBirth: "1992-04-14",
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
       gender: "MALE",
       nationality: "US",
-      passportNumber: `US9823410${i}A`,
-      passportExpiry: "2031-08-20",
-      frequentFlyerAirline: "Aetheria Sky Alliance",
-      frequentFlyerNumber: "AET-78902",
+      passportNumber: "",
+      passportExpiry: "",
+      frequentFlyerAirline: "",
+      frequentFlyerNumber: "",
     }))
   );
 
-  // Seats & Addons
-  const [selectedSeat, setSelectedSeat] = useState<string | null>("14A");
-  const [seatFee, setSeatFee] = useState(25);
+  // Seats & Addons — no pre-selected seat; user must choose
+  const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
+  const [seatFee, setSeatFee] = useState(0);
   const [extraBaggage, setExtraBaggage] = useState(0);
   const [mealPreference, setMealPreference] = useState("STANDARD");
   const [travelInsurance, setTravelInsurance] = useState(false);
@@ -79,22 +79,38 @@ function BookingContent() {
 
   // Fetch Flight details
   useEffect(() => {
+    if (!flightId) {
+      void Promise.resolve().then(() => setLoading(false));
+      return;
+    }
+    let cancelled = false;
     async function getFlight() {
-      if (!flightId) return;
       try {
         const res = await fetch(`/api/flights/${flightId}`);
         const data = await res.json();
-        if (data.flight) {
+        if (!cancelled && data.flight) {
           setFlight(data.flight);
         }
-      } catch (e) {
-        console.error("Flight fetch error:", e);
+      } catch {
+        // handled by !flight empty state below
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
-    getFlight();
+    void Promise.resolve().then(() => getFlight());
+    return () => {
+      cancelled = true;
+    };
   }, [flightId]);
+
+  // Prefill contact from session once it loads (render-phase adjustment)
+  const [prefilledUserId, setPrefilledUserId] = useState<string | null>(null);
+  if (user && user.id !== prefilledUserId) {
+    setPrefilledUserId(user.id);
+    setContactName((v) => v || user.name || "");
+    setContactEmail((v) => v || user.email || "");
+    setContactPhone((v) => v || user.phone || "");
+  }
 
   if (loading) {
     return (
@@ -214,11 +230,18 @@ function BookingContent() {
   };
 
   const handleAutofillDemo = () => {
+    if (!user) return;
+    setContactName(user.name || "");
+    setContactEmail(user.email || "");
+    setContactPhone(user.phone || "");
+  };
+
+  const handleFillDemo = () => {
     setContactName("Alex Thorne");
-    setContactEmail("traveler@aetheria.com");
+    setContactEmail(user?.email || "traveler@aetheria.com");
     setContactPhone("+1 (555) 839-1029");
-    setPassengers([
-      {
+    setPassengers((prev) =>
+      prev.map((_, i) => ({
         type: "ADULT",
         title: "Mr",
         firstName: "Alex",
@@ -226,34 +249,51 @@ function BookingContent() {
         dateOfBirth: "1992-04-14",
         gender: "MALE",
         nationality: "US",
-        passportNumber: "US98234102A",
+        passportNumber: `US9823410${i}A`,
         passportExpiry: "2031-08-20",
-        frequentFlyerAirline: "Aetheria Sky Alliance",
-        frequentFlyerNumber: "AET-78902",
-        seatNumber: "14A",
-      },
-    ]);
+        frequentFlyerAirline: "",
+        frequentFlyerNumber: "",
+      }))
+    );
   };
 
   // Finalize booking via Authoritative Server Action API
-  const handleFinalizeBooking = async (stripePaymentId: string) => {
+  const handleFinalizeBooking = async (stripePaymentId?: string) => {
     setIsProcessing(true);
     setErrorMessage("");
+
+    if (!contactName.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
+      setErrorMessage("Enter the primary contact name and a valid email before continuing.");
+      setIsProcessing(false);
+      return;
+    }
+    for (let i = 0; i < passengers.length; i++) {
+      const p = passengers[i];
+      if (!p.firstName.trim() || !p.lastName.trim() || !p.passportNumber.trim() || !p.dateOfBirth.trim() || !p.passportExpiry.trim()) {
+        setErrorMessage(`Passenger ${i + 1}: first name, last name, date of birth, passport number, and passport expiry are required.`);
+        setIsProcessing(false);
+        setStep(2);
+        return;
+      }
+    }
 
     try {
       const payload = {
         flightId: flight._id,
         cabinClass,
-        passengers,
-        contactName,
-        contactEmail,
+        passengers: passengers.map((p, i) => ({
+          ...p,
+          seatNumber: i === 0 ? selectedSeat || undefined : p.seatNumber || undefined,
+        })),
+        contactName: contactName.trim(),
+        contactEmail: contactEmail.trim(),
         contactPhone,
         couponCode: couponCode || undefined,
         travelInsurance,
         carbonOffsetContribution: carbonOffset,
         seatSelectionFee: seatFee,
         baggageFee,
-        stripePaymentIntentId: stripePaymentId,
+        stripePaymentIntentId: stripePaymentId || undefined,
         specialRequests: `${mealPreference} meal requested`,
       };
 
@@ -413,7 +453,8 @@ function BookingContent() {
                   contactPhone={contactPhone}
                   onUpdatePassenger={handleUpdatePassenger}
                   onUpdateContact={handleUpdateContact}
-                  onAutofillDemo={handleAutofillDemo}
+                  onFillFromProfile={handleAutofillDemo}
+                  onFillDemo={handleFillDemo}
                 />
 
                 <div className="flex items-center justify-between pt-4">
@@ -427,7 +468,21 @@ function BookingContent() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setStep(3)}
+                    onClick={() => {
+                      if (!contactName.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
+                        setErrorMessage("Enter the primary contact name and a valid email before continuing.");
+                        return;
+                      }
+                      for (let i = 0; i < passengers.length; i++) {
+                        const p = passengers[i];
+                        if (!p.firstName.trim() || !p.lastName.trim() || !p.dateOfBirth.trim() || !p.passportNumber.trim() || !p.passportExpiry.trim()) {
+                          setErrorMessage(`Passenger ${i + 1} is missing required details (name, birth date, passport number, passport expiry).`);
+                          return;
+                        }
+                      }
+                      setErrorMessage("");
+                      setStep(3);
+                    }}
                     className="px-8 py-3.5 bg-slate-900 hover:bg-sky-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
                   >
                     <span>Next: Seats & Add-ons</span>

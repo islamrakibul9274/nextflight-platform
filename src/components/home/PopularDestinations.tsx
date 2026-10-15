@@ -1,9 +1,9 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowUpRight, Clock, Star, MapPin } from "lucide-react";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
-export function PopularDestinations() {
-  const destinations = [
+const DESTINATIONS = [
     {
       city: "Tokyo",
       country: "Japan",
@@ -66,6 +66,9 @@ export function PopularDestinations() {
     },
   ];
 
+export function PopularDestinations() {
+  const destinations = DESTINATIONS;
+
   return (
     <section id="destinations" className="py-24 bg-slate-50/60 border-t border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,11 +103,13 @@ export function PopularDestinations() {
             >
               {/* Image Container */}
               <div className="relative h-60 w-full overflow-hidden bg-slate-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <ImageWithFallback
                   src={dest.image}
-                  alt={dest.city}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  alt={`${dest.city}, ${dest.country} skyline`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
+                  width={800}
+                  height={480}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
 

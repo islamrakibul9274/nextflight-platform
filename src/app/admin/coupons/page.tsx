@@ -50,7 +50,7 @@ export default function AdminCouponsPage() {
   };
 
   useEffect(() => {
-    fetchCoupons();
+    void Promise.resolve().then(() => fetchCoupons());
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {

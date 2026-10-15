@@ -1,18 +1,34 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Booking } from "@/models/Booking";
+import "@/models/Flight"; // register schema for populate("flightId")
+import { requireAdmin } from "@/lib/auth";
+import { serverError, forbidden, badRequest } from "@/lib/api-error";
+import { z } from "zod";
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const UpdateSchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(["PENDING", "CONFIRMED", "CANCELLED", "REFUNDED", "CHECKED_IN"]).optional(),
+  paymentStatus: z.enum(["UNPAID", "PAID", "REFUNDED", "FAILED"]).optional(),
+});
 
 export async function GET(req: Request) {
   try {
+    const admin = await requireAdmin();
+    if (!admin) return forbidden("Admin access required");
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search")?.trim();
+    const search = searchParams.get("search")?.trim().slice(0, 60);
     const status = searchParams.get("status");
 
     await connectDB();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: any = {};
     if (search) {
-      const regex = new RegExp(search, "i");
+      const regex = new RegExp(escapeRegExp(search), "i");
       query.$or = [
         { pnr: regex },
         { userEmail: regex },
@@ -32,24 +48,29 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ bookings });
   } catch (error: unknown) {
-    const err = error as Error;
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return serverError("Admin bookings error", error);
   }
 }
 
 export async function PUT(req: Request) {
   try {
+    const admin = await requireAdmin();
+    if (!admin) return forbidden("Admin access required");
     const body = await req.json();
-    const { id, status, paymentStatus } = body;
+    const parsed = UpdateSchema.safeParse(body);
+    if (!parsed.success) return badRequest(parsed.error.issues[0].message);
     await connectDB();
     const updated = await Booking.findByIdAndUpdate(
-      id,
-      { status, paymentStatus },
+      parsed.data.id,
+      {
+        ...(parsed.data.status ? { status: parsed.data.status } : {}),
+        ...(parsed.data.paymentStatus ? { paymentStatus: parsed.data.paymentStatus } : {}),
+      },
       { new: true }
     );
+    if (!updated) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     return NextResponse.json({ success: true, booking: updated });
   } catch (error: unknown) {
-    const err = error as Error;
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return serverError("Admin booking update error", error);
   }
 }

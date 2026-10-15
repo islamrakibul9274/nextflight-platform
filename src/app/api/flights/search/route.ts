@@ -33,6 +33,9 @@ export async function GET(req: Request) {
 
     if (departureDate) {
       const start = new Date(departureDate);
+      if (isNaN(start.getTime())) {
+        return NextResponse.json({ error: "Invalid date format. Use YYYY-MM-DD." }, { status: 400 });
+      }
       start.setHours(0, 0, 0, 0);
       const end = new Date(departureDate);
       end.setHours(23, 59, 59, 999);
@@ -198,8 +201,7 @@ export async function GET(req: Request) {
       },
     });
   } catch (error: unknown) {
-    const err = error as Error;
-    console.error("Flight search error:", err);
-    return NextResponse.json({ flights: [], error: err.message }, { status: 500 });
+    const { serverError } = await import("@/lib/api-error");
+    return serverError("Flight search error", error);
   }
 }

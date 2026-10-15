@@ -135,7 +135,7 @@ export function HeroSearchWidget() {
       {/* Immersive Aviation Command Console Card */}
       <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-zinc-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] p-6 sm:p-8 relative z-20 overflow-hidden">
         {/* Ambient Top Glow Strip */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-600" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-slate-950" />
 
         {/* Top Control Bar */}
         <div ref={dropdownRef} className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-zinc-100 mb-6">
@@ -312,7 +312,7 @@ export function HeroSearchWidget() {
                   e.stopPropagation();
                   handleSwap();
                 }}
-                className="w-8 h-8 rounded-full bg-zinc-950 hover:bg-blue-600 text-white shadow-sm flex items-center justify-center shrink-0 transition-transform active:rotate-180 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-950 hover:bg-slate-800 text-white shadow-sm flex items-center justify-center shrink-0 transition-transform active:rotate-180 cursor-pointer"
                 title="Swap Departure and Destination"
               >
                 <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -373,7 +373,7 @@ export function HeroSearchWidget() {
             <div className="lg:col-span-2 flex items-stretch">
               <button
                 type="submit"
-                className="w-full h-full min-h-[60px] px-6 bg-zinc-950 hover:bg-blue-600 text-white font-extrabold text-xs tracking-wide uppercase rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 group cursor-pointer active:scale-98"
+                className="w-full h-full min-h-[60px] px-6 bg-slate-950 hover:bg-slate-800 text-white font-extrabold text-xs tracking-wide uppercase rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 group cursor-pointer active:scale-98"
               >
                 <span>Search Flights</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -405,7 +405,7 @@ export function HeroSearchWidget() {
                 className="px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <span>{r.fromCity} → {r.toCity}</span>
-                <span className="font-mono font-bold text-blue-600 text-[11px]">{r.fare}</span>
+                <span className="font-mono font-bold text-slate-900 text-[11px]">{r.fare}</span>
               </button>
             ))}
           </div>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { CreditCard, Search, DollarSign, CheckCircle2, ShieldAlert } from "lucide-react";
 
 export default function AdminPaymentsPage() {
-  const [payments, setPayments] = useState([
+  const [payments] = useState(() => [
     {
       id: "pi_3NqL2gRqg3b6rhHt1Ci7tYEp",
       pnr: "AET-789X4K",

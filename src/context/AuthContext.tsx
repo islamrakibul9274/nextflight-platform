@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string;
   role: "USER" | "ADMIN";
   membershipTier: "VOYAGER" | "STRATOSPHERE" | "APEX";
+  membershipExpiresAt?: string;
   avatar?: string;
   phone?: string;
   dateOfBirth?: string;
@@ -23,9 +24,18 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe?: boolean
+  ) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    phone?: string
+  ) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
+  logout: (redirectTo?: string) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -38,7 +48,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      if (res.status === 401) {
+        setUser(null);
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         if (data.authenticated && data.user) {
@@ -57,22 +71,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refreshUser();
+    let mounted = true;
+    (async () => {
+      if (!mounted) return;
+      await refreshUser();
+    })();
+    return () => {
+      mounted = false;
+    };
   }, [refreshUser]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, rememberMe = true) => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
       const data = await res.json();
       if (!res.ok) {
         return { success: false, error: data.error || "Failed to login" };
       }
       setUser(data.user);
-      return { success: true };
+      return { success: true, user: data.user as AuthUser };
     } catch (e: unknown) {
       const err = e as Error;
       return { success: false, error: err.message || "Network error" };
@@ -91,20 +112,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error || "Failed to register" };
       }
       setUser(data.user);
-      return { success: true };
+      return { success: true, user: data.user as AuthUser };
     } catch (e: unknown) {
       const err = e as Error;
       return { success: false, error: err.message || "Network error" };
     }
   };
 
-  const logout = async () => {
+  const logout = async (redirectTo = "/") => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      setUser(null);
-      router.push("/");
     } catch (e) {
       console.error("Logout error:", e);
+    } finally {
+      setUser(null);
+      router.push(redirectTo);
     }
   };
 

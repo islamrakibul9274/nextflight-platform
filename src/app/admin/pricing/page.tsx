@@ -90,7 +90,7 @@ export default function AdminPricingPage() {
           </div>
         </div>
 
-        <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl">
+        <div className="bg-white text-slate-900 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl border border-slate-200">
           <div className="flex items-center gap-2 text-sky-400 font-bold text-xs uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4" /> Authoritative Fare Guarantee
           </div>

@@ -1,18 +1,23 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
-import { hashPassword, signToken } from "@/lib/auth";
+import { hashPassword, signToken, getAuthCookieFlags, AUTH_COOKIE_NAME } from "@/lib/auth";
+import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
+import { serverError, rateLimited } from "@/lib/api-error";
 import { z } from "zod";
 
 const RegisterSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  phone: z.string().optional(),
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(80, "Name is too long"),
+  email: z.string().trim().email("Enter a valid email address"),
+  password: z.string().min(4, "Password must be at least 4 characters").max(128, "Password is too long"),
+  phone: z.string().trim().max(30, "Phone number is too long").optional().or(z.literal("")),
 });
 
 export async function POST(req: Request) {
   try {
+    const rl = checkRateLimit(getClientKey(req, "register"), 5, 60_000);
+    if (!rl.allowed) return rateLimited(rl.resetAt);
+
     const body = await req.json();
     const parsed = RegisterSchema.safeParse(body);
 
@@ -36,15 +41,15 @@ export async function POST(req: Request) {
 
     const passwordHash = await hashPassword(password);
     const user = await User.create({
-      name,
+      name: name.trim(),
       email: email.toLowerCase(),
       passwordHash,
-      phone,
-      role: email.toLowerCase().includes("admin") ? "ADMIN" : "USER",
+      phone: phone?.trim() || undefined,
+      role: "USER",
       membershipTier: "VOYAGER",
     });
 
-    const token = signToken(user);
+    const token = signToken(user, true);
     const response = NextResponse.json({
       success: true,
       user: {
@@ -56,21 +61,10 @@ export async function POST(req: Request) {
       },
     });
 
-    response.cookies.set("aetheria_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieFlags(true));
 
     return response;
   } catch (error: unknown) {
-    const err = error as Error;
-    console.error("Register error:", err);
-    return NextResponse.json(
-      { error: err.message || "Internal server error" },
-      { status: 500 }
-    );
+    return serverError("Register error", error);
   }
 }

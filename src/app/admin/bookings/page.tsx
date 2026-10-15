@@ -49,7 +49,7 @@ export default function AdminBookingsPage() {
   };
 
   useEffect(() => {
-    fetchBookings();
+    void Promise.resolve().then(() => fetchBookings());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, statusFilter]);
 

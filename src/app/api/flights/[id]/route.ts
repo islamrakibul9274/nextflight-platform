@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db";
 import { Flight } from "@/models/Flight";
 import { Airport } from "@/models/Airport";
 import { Aircraft } from "@/models/Aircraft";
+import { serverError } from "@/lib/api-error";
+import mongoose from "mongoose";
 
 export async function GET(
   req: Request,
@@ -10,6 +12,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: "Invalid flight id" }, { status: 400 });
+    }
     await connectDB();
 
     const flight = await Flight.findById(id).lean();
@@ -30,8 +35,6 @@ export async function GET(
       aircraft,
     });
   } catch (error: unknown) {
-    const err = error as Error;
-    console.error("Get flight error:", err);
-    return NextResponse.json({ error: err.message || "Failed to fetch flight" }, { status: 500 });
+    return serverError("Get flight error", error);
   }
 }
