@@ -1,77 +1,86 @@
 "use client";
 
-import React, { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
-
+import { useId, useState } from "react";
+import Link from "next/link";
+import { Plus, ArrowUpRight } from "lucide-react";
+const questions = [
+  {
+    question: "How do I find the right flight?",
+    answer:
+      "Choose your departure and arrival airports, travel date, and cabin. You can then compare available flights, sort by price or duration, and filter by airline, departure time, or refundability.",
+  },
+  {
+    question: "Where can I see baggage allowances?",
+    answer:
+      "Each flight card shows its checked-baggage allowance. Expand the flight details to see cabin and checked bags together, then review any additional baggage charges during booking.",
+  },
+  {
+    question: "Can I choose my seat?",
+    answer:
+      "Yes. The seat-selection step shows the cabin layout and available seats. Seat fees and any membership benefits are shown before you confirm your selection.",
+  },
+  {
+    question: "How do cancellations and refunds work?",
+    answer:
+      "Refund eligibility depends on your fare and booking conditions. Review these before paying. You can find your reservation and available cancellation options in My Trips.",
+  },
+  {
+    question: "Do I need a membership to book?",
+    answer:
+      "No paid membership is required. You can book with a free account, or compare the Stratosphere Club plans if you would like additional benefits.",
+  },
+];
 export function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const faqs = [
-    {
-      q: "How does NextFlight provide authoritative real-time pricing?",
-      a: "NextFlight links directly to global airline GDS and NDC aeronautical telemetry APIs. When you search or reserve a seat on our platform, the fare is immediately locked and verified on the authoritative central ledger, eliminating price jumps during checkout.",
-    },
-    {
-      q: "What is included with my ticket baggage allowance?",
-      a: "All standard Economy tickets include 1x 8kg cabin bag and 1x 23kg checked bag. Premium Economy and Business Class tickets include 2x 23kg or 2x 32kg checked bags respectively. Stratosphere Club members receive +1 additional checked bag complimentary on every flight.",
-    },
-    {
-      q: "How does the flexible cancellation and refund policy work?",
-      a: "All Business Class, First Class, and tickets purchased with Travel Insurance are 100% refundable up to 2 hours before scheduled departure. Standard Economy tickets can be cancelled for an 85% automated instant refund with no voucher lock-in.",
-    },
-    {
-      q: "How do I upgrade to the Stratosphere Club membership?",
-      a: "You can upgrade directly via the Membership tab or during flight checkout. Stratosphere membership gives you an automatic 15% discount on all flights, unlimited VIP lounge access, and free seat selection.",
-    },
-    {
-      q: "Can I choose my specific seat and view aircraft specs?",
-      a: "Yes! During Step 3 of our booking engine, an interactive visual seat map displays exact cabin zones (Lie-flat suites, extra legroom, exit rows), aircraft model dimensions (Boeing 787-9 vs Airbus A350-1000), power outlets, and WiFi availability.",
-    },
-  ];
-
+  const [open, setOpen] = useState<number | null>(0);
+  const id = useId();
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold uppercase tracking-wider mb-3">
-            <HelpCircle className="w-3.5 h-3.5 text-sky-600" /> Travel Knowledge Base
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
-            Frequently Asked Questions
+    <section className="landing-section border-t border-slate-200/70 bg-[#f8fafb]">
+      <div className="page-container grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+        <div>
+          <p className="section-kicker">A FEW GOOD ANSWERS</p>
+          <h2 className="section-heading">
+            Before you
+            <br className="hidden lg:block" /> take off.
           </h2>
-          <p className="mt-2 text-slate-600 text-sm sm:text-base">
-            Everything you need to know about our booking platform and flight policies.
+          <p className="section-description max-w-xs">
+            A little clarity makes the journey easier.
           </p>
+          <Link href="/help" className="text-link mt-6">
+            Talk to our travel concierge{" "}
+            <ArrowUpRight size={16} aria-hidden="true" />
+          </Link>
         </div>
-
-        <div className="space-y-4">
-          {faqs.map((faq, idx) => {
-            const isOpen = openIndex === idx;
-            return (
-              <div
-                key={idx}
-                className="rounded-2xl border border-slate-200/90 overflow-hidden bg-white transition-colors"
-              >
+        <div className="divide-y divide-slate-200">
+          {questions.map((item, index) => (
+            <div key={item.question}>
+              <h3>
                 <button
+                  id={`${id}-question-${index}`}
                   type="button"
-                  onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors"
+                  aria-expanded={open === index}
+                  aria-controls={`${id}-answer-${index}`}
+                  onClick={() => setOpen(open === index ? null : index)}
+                  className="flex w-full items-center justify-between gap-5 py-5 text-left text-sm font-semibold leading-relaxed text-slate-800"
                 >
-                  <span className="text-base font-bold text-slate-900">{faq.q}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 text-sky-600" : ""
-                    }`}
+                  <span>{item.question}</span>
+                  <Plus
+                    size={17}
+                    className={`shrink-0 text-slate-400 transition-transform ${open === index ? "rotate-45" : ""}`}
+                    aria-hidden="true"
                   />
                 </button>
-                {isOpen && (
-                  <div className="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-                    {faq.a}
-                  </div>
-                )}
+              </h3>
+              <div
+                id={`${id}-answer-${index}`}
+                role="region"
+                aria-labelledby={`${id}-question-${index}`}
+                hidden={open !== index}
+                className="pb-6 pr-8 text-sm leading-7 text-slate-500"
+              >
+                {item.answer}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -1,130 +1,100 @@
-"use client";
-
-import React from "react";
 import Link from "next/link";
-import { Plane, ShieldCheck, Globe } from "lucide-react";
-
+import { ArrowUpRight, Plane } from "lucide-react";
+const groups = [
+  {
+    title: "Explore",
+    links: [
+      { label: "Find a flight", href: "/search" },
+      { label: "Destinations", href: "/#destinations" },
+      { label: "Our fleet", href: "/#fleet" },
+      { label: "Compare fares", href: "/pricing" },
+    ],
+  },
+  {
+    title: "Your journey",
+    links: [
+      { label: "My trips", href: "/my-trips" },
+      { label: "Account & travelers", href: "/profile" },
+      { label: "Stratosphere Club", href: "/membership" },
+      { label: "Travel concierge", href: "/help" },
+    ],
+  },
+];
 export function Footer() {
   return (
-    <footer className="bg-white text-slate-600 border-t border-slate-200 pt-16 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-slate-200">
-          {/* Brand Column */}
-          <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-sky-600 flex items-center justify-center text-white">
-                <Plane className="w-5 h-5 -rotate-45" aria-hidden />
-              </div>
-              <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                Next<span className="text-sky-600">Flight</span>
+    <footer className="border-t border-slate-200/70 bg-white">
+      <div className="page-container">
+        <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.7fr_1fr_1fr_1.2fr] lg:py-16">
+          <div>
+            <Link
+              href="/"
+              aria-label="NextFlight home"
+              className="inline-flex items-center gap-2.5"
+            >
+              <span className="brand-symbol">
+                <Plane
+                  size={20}
+                  strokeWidth={1.7}
+                  className="-rotate-45"
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="text-xl font-semibold tracking-[-0.06em] text-slate-900">
+                nextflight<span className="text-sky-600">.</span>
               </span>
             </Link>
-            <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
-              The next-generation flight search and booking infrastructure. Direct GDS feeds, real-time seat availability, transparent baggage rules, and automated e-ticket issuance.
+            <p className="mt-5 max-w-xs text-sm leading-7 text-slate-500">
+              For the places you dream of.
+              <br />
+              And the people who make the trip worth it.
             </p>
-            <div className="flex items-center gap-3 text-xs text-slate-500">
-              <div className="flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden />
-                <span>IATA Certified Partner</span>
-              </div>
-              <span aria-hidden>•</span>
-              <div className="flex items-center gap-1">
-                <Globe className="w-4 h-4 text-sky-600" aria-hidden />
-                <span>Global NDC Network</span>
-              </div>
-            </div>
+            <span className="mt-5 block text-[10px] font-medium tracking-[0.15em] text-slate-400">
+              A LITTLE CLOSER TO EVERYWHERE
+            </span>
           </div>
-
-          {/* Sitemaps */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-4">
-              Flight Discovery
-            </h4>
-            <ul className="space-y-2.5 text-xs text-slate-500 font-medium">
-              <li>
-                <Link href="/search?from=JFK&to=LHR" className="hover:text-sky-600 transition-colors">
-                  New York → London
-                </Link>
-              </li>
-              <li>
-                <Link href="/search?from=SFO&to=HND" className="hover:text-sky-600 transition-colors">
-                  San Francisco → Tokyo
-                </Link>
-              </li>
-              <li>
-                <Link href="/search?from=DXB&to=SIN" className="hover:text-sky-600 transition-colors">
-                  Dubai → Singapore
-                </Link>
-              </li>
-              <li>
-                <Link href="/search?from=LAX&to=SYD" className="hover:text-sky-600 transition-colors">
-                  Los Angeles → Sydney
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-4">
-              Privileges & Services
-            </h4>
-            <ul className="space-y-2.5 text-xs text-slate-500 font-medium">
-              <li>
-                <Link href="/membership" className="hover:text-sky-600 transition-colors">
-                  Stratosphere Club
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="hover:text-sky-600 transition-colors">
-                  Fare Class Comparison
-                </Link>
-              </li>
-              <li>
-                <Link href="/help" className="hover:text-sky-600 transition-colors">
-                  AI Travel Concierge
-                </Link>
-              </li>
-              <li>
-                <Link href="/my-trips" className="hover:text-sky-600 transition-colors">
-                  Boarding Pass & Manifest
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-4">
-              Corporate
-            </h4>
-            <ul className="space-y-2.5 text-xs text-slate-500 font-medium">
-              <li>
-                <Link href="/help" className="hover:text-sky-600 transition-colors">
-                  Help & Concierge
-                </Link>
-              </li>
-              <li>
-                <Link href="/membership" className="hover:text-sky-600 transition-colors">
-                  Membership Plans
-                </Link>
-              </li>
-              <li>
-                <Link href="/my-trips" className="hover:text-sky-600 transition-colors">
-                  Manage My Trips
-                </Link>
-              </li>
-            </ul>
+          {groups.map((group) => (
+            <nav key={group.title} aria-label={group.title}>
+              <h2 className="mb-5 text-xs font-semibold text-slate-900">
+                {group.title}
+              </h2>
+              <ul className="space-y-3">
+                {group.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-xs text-slate-500 transition-colors hover:text-sky-700"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+          <div className="self-start rounded-2xl border border-slate-200/70 bg-[#f6f8fa] p-5">
+            <p className="text-sm font-semibold tracking-tight text-slate-800">
+              A little help along the way.
+            </p>
+            <p className="mt-2 text-xs leading-6 text-slate-500">
+              Questions about baggage, cabins, or your next journey?
+            </p>
+            <Link href="/help" className="text-link mt-4 !text-xs">
+              Ask the concierge <ArrowUpRight size={14} aria-hidden="true" />
+            </Link>
           </div>
         </div>
-
-        {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div>
-            © {new Date().getFullYear()} NextFlight Aviation Technologies Inc. All rights reserved.
-          </div>
-          <nav aria-label="Legal" className="flex items-center gap-6">
-            <Link href="/privacy" className="hover:text-sky-600 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-sky-600 transition-colors">Conditions of Carriage</Link>
-            <Link href="/security" className="hover:text-sky-600 transition-colors">Security Standards</Link>
+        <div className="flex flex-col gap-4 border-t border-slate-200/70 py-6 text-[11px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} NextFlight. All rights reserved.</p>
+          <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
+            <Link href="/privacy" className="hover:text-sky-700">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-sky-700">
+              Terms & conditions
+            </Link>
+            <Link href="/security" className="hover:text-sky-700">
+              Security
+            </Link>
           </nav>
         </div>
       </div>

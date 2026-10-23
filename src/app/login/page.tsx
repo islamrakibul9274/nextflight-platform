@@ -3,14 +3,17 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { safeRedirect } from "@/lib/safe-redirect";
 import { useAuth } from "@/context/AuthContext";
-import { Plane, Lock, Mail, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
-
-function getSafeNext(value: string | null): string | null {
-  if (!value) return null;
-  if (!value.startsWith("/") || value.startsWith("//")) return null;
-  return value;
-}
+import {
+  Plane,
+  Lock,
+  Mail,
+  ArrowRight,
+  AlertCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 function LoginContent() {
   const [email, setEmail] = useState("");
@@ -22,7 +25,7 @@ function LoginContent() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = getSafeNext(searchParams.get("next"));
+  const next = safeRedirect(searchParams.get("next"));
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +46,10 @@ function LoginContent() {
       const res = await login(trimmedEmail, password, rememberMe);
       if (res.success && res.user) {
         if (next) router.push(next);
-        else router.push(res.user.role === "ADMIN" ? "/admin/dashboard" : "/my-trips");
+        else
+          router.push(
+            res.user.role === "ADMIN" ? "/admin/dashboard" : "/my-trips",
+          );
       } else {
         setError(res.error || "Invalid email or password.");
       }
@@ -70,13 +76,17 @@ function LoginContent() {
             Sign In to Your Flight Portal
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Access your bookings, e-tickets, and Stratosphere membership privileges.
+            Access your bookings, e-tickets, and Stratosphere membership
+            privileges.
           </p>
         </div>
 
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl p-8 space-y-6">
           {error && (
-            <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+            <div
+              role="alert"
+              className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2"
+            >
               <AlertCircle className="w-4 h-4 shrink-0" aria-hidden />
               <span>{error}</span>
             </div>
@@ -84,11 +94,17 @@ function LoginContent() {
 
           <form onSubmit={handleLogin} className="space-y-4" noValidate>
             <div>
-              <label htmlFor="login-email" className="text-xs font-bold text-slate-700 block mb-1.5">
+              <label
+                htmlFor="login-email"
+                className="text-xs font-bold text-slate-700 block mb-1.5"
+              >
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden />
+                <Mail
+                  className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  aria-hidden
+                />
                 <input
                   id="login-email"
                   type="email"
@@ -104,13 +120,24 @@ function LoginContent() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="login-password" className="text-xs font-bold text-slate-700">Password</label>
-                <Link href="/forgot-password" className="text-xs text-sky-600 font-semibold hover:underline">
+                <label
+                  htmlFor="login-password"
+                  className="text-xs font-bold text-slate-700"
+                >
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-sky-600 font-semibold hover:underline"
+                >
                   Forgot Password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden />
+                <Lock
+                  className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  aria-hidden
+                />
                 <input
                   id="login-password"
                   type={showPassword ? "text" : "password"}
@@ -128,7 +155,11 @@ function LoginContent() {
                   aria-pressed={showPassword}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -149,7 +180,9 @@ function LoginContent() {
               aria-busy={loading}
               className="w-full py-3.5 bg-slate-900 hover:bg-sky-600 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{loading ? "Authenticating..." : "Sign In to NextFlight"}</span>
+              <span>
+                {loading ? "Authenticating..." : "Sign In to NextFlight"}
+              </span>
               <ArrowRight className="w-4 h-4" aria-hidden />
             </button>
           </form>
@@ -157,7 +190,12 @@ function LoginContent() {
 
         <p className="text-center text-xs text-slate-500 mt-6">
           Don&apos;t have an account?{" "}
-          <Link href={next ? `/register?next=${encodeURIComponent(next)}` : "/register"} className="font-bold text-slate-900 hover:text-sky-600">
+          <Link
+            href={
+              next ? `/register?next=${encodeURIComponent(next)}` : "/register"
+            }
+            className="font-bold text-slate-900 hover:text-sky-600"
+          >
             Create an Account
           </Link>
         </p>
@@ -168,7 +206,13 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-xs text-slate-500">Loading sign in...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-xs text-slate-500">
+          Loading sign in...
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );

@@ -5,7 +5,7 @@ import { serverError, rateLimited, badRequest } from "@/lib/api-error";
 import { z } from "zod";
 
 const MsgSchema = z.object({
-  role: z.enum(["user", "assistant", "system"]),
+  role: z.enum(["user", "assistant"]),
   content: z.string().trim().min(1).max(2000),
 });
 
@@ -20,7 +20,8 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const parsed = Schema.safeParse(body);
-    if (!parsed.success) return badRequest("Messages array (max 20, 2000 chars each) is required");
+    if (!parsed.success)
+      return badRequest("Messages array (max 20, 2000 chars each) is required");
 
     const reply = await askNextFlightConcierge(parsed.data.messages);
     return NextResponse.json({ reply });

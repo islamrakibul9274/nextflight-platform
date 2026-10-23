@@ -1,51 +1,90 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 
 type ToastKind = "success" | "error" | "info";
-
 interface Toast {
   id: number;
   kind: ToastKind;
   message: string;
 }
-
-const ToastContext = createContext<{ notify: (message: string, kind?: ToastKind) => void }>({
-  notify: () => {},
-});
-
+const ToastContext = createContext<{
+  notify: (message: string, kind?: ToastKind) => void;
+}>({ notify: () => {} });
 export const useToast = () => useContext(ToastContext);
-
 let nextId = 1;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const notify = useCallback((message: string, kind: ToastKind = "info") => {
-    const id = nextId++;
-    setToasts((t) => [...t, { id, kind, message }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
+  const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
+  const dismiss = useCallback((id: number) => {
+    clearTimeout(timers.current.get(id));
+    timers.current.delete(id);
+    setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
-
+  const notify = useCallback(
+    (message: string, kind: ToastKind = "info") => {
+      const id = nextId++;
+      setToasts((current) => [...current.slice(-2), { id, kind, message }]);
+      timers.current.set(
+        id,
+        setTimeout(() => dismiss(id), kind === "error" ? 8000 : 5000),
+      );
+    },
+    [dismiss],
+  );
+  useEffect(() => {
+    const pending = timers.current;
+    return () => {
+      pending.forEach(clearTimeout);
+      pending.clear();
+    };
+  }, []);
+  const value = useMemo(() => ({ notify }), [notify]);
   return (
-    <ToastContext.Provider value={{ notify }}>
+    <ToastContext.Provider value={value}>
       {children}
-      <div aria-live="polite" className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            role={t.kind === "error" ? "alert" : "status"}
-            className={`px-4 py-3 rounded-xl text-xs font-semibold shadow-lg border ${
-              t.kind === "success"
-                ? "bg-emerald-600 text-white border-emerald-700"
-                : t.kind === "error"
-                  ? "bg-rose-600 text-white border-rose-700"
-                  : "bg-slate-900 text-white border-slate-700"
-            }`}
-          >
-            {t.message}
-          </div>
-        ))}
+      <div aria-label="Notifications" className="toast-stack">
+        {toasts.map((toast) => {
+          const Icon =
+            toast.kind === "error"
+              ? AlertCircle
+              : toast.kind === "success"
+                ? CheckCircle2
+                : Info;
+          return (
+            <div
+              key={toast.id}
+              role={toast.kind === "error" ? "alert" : "status"}
+              className="toast-message"
+            >
+              <Icon
+                className={`mt-0.5 h-5 w-5 shrink-0 ${toast.kind === "error" ? "text-rose-600" : toast.kind === "success" ? "text-emerald-600" : "text-sky-600"}`}
+                aria-hidden="true"
+              />
+              <p className="min-w-0 flex-1 text-sm leading-relaxed text-slate-700">
+                {toast.message}
+              </p>
+              <button
+                type="button"
+                aria-label="Dismiss notification"
+                className="-mr-1 shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                onClick={() => dismiss(toast.id)}
+              >
+                <X size={15} aria-hidden="true" />
+              </button>
+            </div>
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );

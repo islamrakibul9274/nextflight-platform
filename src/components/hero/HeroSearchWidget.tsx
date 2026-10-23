@@ -1,40 +1,52 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { AirportPicker } from "./AirportPicker";
 import { useRouter } from "next/navigation";
+import { dateAfterDays, localDateInput } from "@/lib/search-dates";
+import { useLocalToday } from "@/lib/use-local-today";
+import { useToast } from "@/components/ui/Toast";
 import {
   Plane,
   Calendar,
   Users,
   ArrowRightLeft,
-  Search,
   ChevronDown,
   MapPin,
   Sparkles,
   Check,
-  X,
-  TrendingDown,
-  ShieldCheck,
-  Compass,
   ArrowRight,
 } from "lucide-react";
 
-interface AirportSuggestion {
-  iataCode: string;
-  name: string;
-  city: string;
-  country: string;
-}
-
 export function HeroSearchWidget() {
   const router = useRouter();
+  const { notify } = useToast();
 
   // Search State
-  const [tripType, setTripType] = useState<"ROUND_TRIP" | "ONE_WAY" | "MULTI_CITY">("ROUND_TRIP");
-  const [origin, setOrigin] = useState({ iata: "JFK", city: "New York", name: "John F. Kennedy Intl", country: "United States" });
-  const [destination, setDestination] = useState({ iata: "LHR", city: "London", name: "London Heathrow", country: "United Kingdom" });
-  const [departureDate, setDepartureDate] = useState("2026-09-05");
-  const [returnDate, setReturnDate] = useState("2026-09-12");
+  const [tripType, setTripType] = useState<"ROUND_TRIP" | "ONE_WAY">(
+    "ROUND_TRIP",
+  );
+  const [origin, setOrigin] = useState({
+    iata: "JFK",
+    city: "New York",
+    name: "John F. Kennedy Intl",
+    country: "United States",
+  });
+  const [destination, setDestination] = useState({
+    iata: "LHR",
+    city: "London",
+    name: "London Heathrow",
+    country: "United Kingdom",
+  });
+  const today = useLocalToday();
+  const [selectedDeparture, setDepartureDate] = useState<string | null>(null);
+  const [selectedReturn, setReturnDate] = useState<string | null>(null);
+  const departureDate =
+    selectedDeparture ??
+    (today ? dateAfterDays(7, new Date(today + "T12:00:00")) : "");
+  const returnDate =
+    selectedReturn ??
+    (today ? dateAfterDays(14, new Date(today + "T12:00:00")) : "");
   const [passengers, setPassengers] = useState(1);
   const [cabinClass, setCabinClass] = useState("ECONOMY");
   const [directOnly, setDirectOnly] = useState(true);
@@ -46,59 +58,33 @@ export function HeroSearchWidget() {
   const [openOriginModal, setOpenOriginModal] = useState(false);
   const [openDestModal, setOpenDestModal] = useState(false);
 
-  const [originQuery, setOriginQuery] = useState("");
-  const [destQuery, setDestQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<AirportSuggestion[]>([]);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setOpenTripDropdown(false);
         setOpenPassengerDropdown(false);
         setOpenCabinDropdown(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const defaultAirports: AirportSuggestion[] = [
-    { iataCode: "JFK", city: "New York", name: "John F. Kennedy Intl", country: "United States" },
-    { iataCode: "LHR", city: "London", name: "London Heathrow", country: "United Kingdom" },
-    { iataCode: "HND", city: "Tokyo", name: "Tokyo Haneda Airport", country: "Japan" },
-    { iataCode: "SIN", city: "Singapore", name: "Singapore Changi Airport", country: "Singapore" },
-    { iataCode: "DXB", city: "Dubai", name: "Dubai International", country: "United Arab Emirates" },
-    { iataCode: "SFO", city: "San Francisco", name: "San Francisco Intl", country: "United States" },
-    { iataCode: "CDG", city: "Paris", name: "Charles de Gaulle", country: "France" },
-    { iataCode: "LAX", city: "Los Angeles", name: "Los Angeles Intl", country: "United States" },
-  ];
-
-  const fetchSuggestions = async (query: string) => {
-    if (!query || query.trim().length < 1) {
-      setSuggestions(defaultAirports);
-      return;
-    }
-    try {
-      const res = await fetch(`/api/airports/autocomplete?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      if (data.airports && data.airports.length > 0) {
-        setSuggestions(data.airports);
-      } else {
-        setSuggestions(
-          defaultAirports.filter(
-            (a) =>
-              a.city.toLowerCase().includes(query.toLowerCase()) ||
-              a.iataCode.toLowerCase().includes(query.toLowerCase()) ||
-              a.name.toLowerCase().includes(query.toLowerCase())
-          )
-        );
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenTripDropdown(false);
+        setOpenPassengerDropdown(false);
+        setOpenCabinDropdown(false);
       }
-    } catch {
-      setSuggestions(defaultAirports);
-    }
-  };
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, []);
 
   const handleSwap = () => {
     const temp = origin;
@@ -108,51 +94,62 @@ export function HeroSearchWidget() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (origin.iata === destination.iata) {
+      notify("Choose different departure and arrival airports.", "error");
+      return;
+    }
+    if (!departureDate || departureDate < localDateInput(new Date())) {
+      notify("Choose a departure date today or later.", "error");
+      return;
+    }
+    if (
+      tripType === "ROUND_TRIP" &&
+      (!returnDate || returnDate < departureDate)
+    ) {
+      notify("Your return date must be on or after departure.", "error");
+      return;
+    }
     const params = new URLSearchParams();
     params.set("from", origin.iata);
     params.set("to", destination.iata);
-    params.set("departure", departureDate);
+    params.set("date", departureDate);
     if (tripType === "ROUND_TRIP") params.set("return", returnDate);
     params.set("passengers", passengers.toString());
-    params.set("class", cabinClass);
+    params.set("cabin", cabinClass);
     if (directOnly) params.set("stops", "0");
 
     router.push(`/search?${params.toString()}`);
   };
 
-  // Format date helper for display
-  const formatDateDisplay = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr + "T12:00:00Z");
-      return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-    } catch {
-      return dateStr;
-    }
-  };
-
   return (
-    <div className="w-full max-w-5xl mx-auto">
+    <div className="w-full max-w-[1100px] mx-auto">
       {/* Immersive Aviation Command Console Card */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-zinc-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] p-6 sm:p-8 relative z-20 overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_16px_60px_-20px_rgba(27,64,87,0.16)] p-4 sm:p-6 relative z-20">
         {/* Ambient Top Glow Strip */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-slate-950" />
+        <div className="absolute top-0 left-8 right-8 h-px bg-slate-200" />
 
         {/* Top Control Bar */}
-        <div ref={dropdownRef} className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-zinc-100 mb-6">
+        <div
+          ref={dropdownRef}
+          className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-zinc-100 mb-6"
+        >
           <div className="flex flex-wrap items-center gap-2">
             {/* Trip Type Selector */}
             <div className="relative">
               <button
                 type="button"
+                aria-expanded={openTripDropdown}
                 onClick={() => {
                   setOpenTripDropdown(!openTripDropdown);
                   setOpenPassengerDropdown(false);
                   setOpenCabinDropdown(false);
                 }}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 text-xs font-bold text-zinc-800 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 text-xs font-semibold text-zinc-700 transition-all cursor-pointer"
               >
                 <ArrowRightLeft className="w-3.5 h-3.5 text-blue-600" />
-                <span>{tripType === "ROUND_TRIP" ? "Round trip" : tripType === "ONE_WAY" ? "One way" : "Multi-city"}</span>
+                <span>
+                  {tripType === "ROUND_TRIP" ? "Round trip" : "One way"}
+                </span>
                 <ChevronDown className="w-3 h-3 text-zinc-400" />
               </button>
 
@@ -161,7 +158,6 @@ export function HeroSearchWidget() {
                   {[
                     { id: "ROUND_TRIP", label: "Round trip" },
                     { id: "ONE_WAY", label: "One way" },
-                    { id: "MULTI_CITY", label: "Multi-city" },
                   ].map((t) => (
                     <button
                       key={t.id}
@@ -171,11 +167,15 @@ export function HeroSearchWidget() {
                         setOpenTripDropdown(false);
                       }}
                       className={`w-full text-left px-3.5 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
-                        tripType === t.id ? "text-blue-600 bg-blue-50/60 font-bold" : "text-zinc-700 hover:bg-zinc-50"
+                        tripType === t.id
+                          ? "text-blue-600 bg-blue-50/60 font-bold"
+                          : "text-zinc-700 hover:bg-zinc-50"
                       }`}
                     >
                       <span>{t.label}</span>
-                      {tripType === t.id && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                      {tripType === t.id && (
+                        <Check className="w-3.5 h-3.5 text-blue-600" />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -186,40 +186,53 @@ export function HeroSearchWidget() {
             <div className="relative">
               <button
                 type="button"
+                aria-expanded={openPassengerDropdown}
                 onClick={() => {
                   setOpenPassengerDropdown(!openPassengerDropdown);
                   setOpenTripDropdown(false);
                   setOpenCabinDropdown(false);
                 }}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 text-xs font-bold text-zinc-800 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 text-xs font-semibold text-zinc-700 transition-all cursor-pointer"
               >
                 <Users className="w-3.5 h-3.5 text-zinc-600" />
-                <span>{passengers} {passengers === 1 ? "Traveler" : "Travelers"}</span>
+                <span>
+                  {passengers} {passengers === 1 ? "Traveler" : "Travelers"}
+                </span>
                 <ChevronDown className="w-3 h-3 text-zinc-400" />
               </button>
 
               {openPassengerDropdown && (
                 <div className="absolute left-0 mt-1.5 w-64 bg-white rounded-2xl border border-zinc-200 shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95">
-                  <div className="text-xs font-bold text-zinc-900 mb-3">Passenger Count</div>
+                  <div className="text-xs font-bold text-zinc-900 mb-3">
+                    Passenger Count
+                  </div>
                   <div className="flex items-center justify-between py-1">
                     <div>
-                      <div className="text-xs font-bold text-zinc-900">Adults</div>
+                      <div className="text-xs font-bold text-zinc-900">
+                        Adults
+                      </div>
                       <div className="text-[10px] text-zinc-400">Age 12+</div>
                     </div>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         disabled={passengers <= 1}
-                        onClick={() => setPassengers(Math.max(1, passengers - 1))}
+                        onClick={() =>
+                          setPassengers(Math.max(1, passengers - 1))
+                        }
                         className="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center font-bold text-xs disabled:opacity-30 cursor-pointer"
                       >
                         -
                       </button>
-                      <span className="font-bold text-xs w-4 text-center">{passengers}</span>
+                      <span className="font-bold text-xs w-4 text-center">
+                        {passengers}
+                      </span>
                       <button
                         type="button"
                         disabled={passengers >= 9}
-                        onClick={() => setPassengers(Math.min(9, passengers + 1))}
+                        onClick={() =>
+                          setPassengers(Math.min(9, passengers + 1))
+                        }
                         className="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center font-bold text-xs disabled:opacity-30 cursor-pointer"
                       >
                         +
@@ -234,12 +247,13 @@ export function HeroSearchWidget() {
             <div className="relative">
               <button
                 type="button"
+                aria-expanded={openCabinDropdown}
                 onClick={() => {
                   setOpenCabinDropdown(!openCabinDropdown);
                   setOpenTripDropdown(false);
                   setOpenPassengerDropdown(false);
                 }}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 text-xs font-bold text-zinc-800 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 text-xs font-semibold text-zinc-700 transition-all cursor-pointer"
               >
                 <span>{cabinClass.replace("_", " ")}</span>
                 <ChevronDown className="w-3 h-3 text-zinc-400" />
@@ -261,11 +275,15 @@ export function HeroSearchWidget() {
                         setOpenCabinDropdown(false);
                       }}
                       className={`w-full text-left px-3.5 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
-                        cabinClass === c.id ? "text-blue-600 bg-blue-50/60 font-bold" : "text-zinc-700 hover:bg-zinc-50"
+                        cabinClass === c.id
+                          ? "text-blue-600 bg-blue-50/60 font-bold"
+                          : "text-zinc-700 hover:bg-zinc-50"
                       }`}
                     >
                       <span>{c.label}</span>
-                      {cabinClass === c.id && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                      {cabinClass === c.id && (
+                        <Check className="w-3.5 h-3.5 text-blue-600" />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -273,10 +291,9 @@ export function HeroSearchWidget() {
             </div>
           </div>
 
-          {/* Live GDS Feed Status Pill */}
-          <div className="hidden sm:flex items-center gap-2 text-[11px] font-semibold text-zinc-500 bg-zinc-50 px-3 py-1 rounded-full border border-zinc-200/80">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>GDS Live Feed: <strong className="text-zinc-900">2,928 Scheduled Flights</strong></span>
+          <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-500">
+            <Plane size={13} aria-hidden="true" />
+            <span>Your journey starts here</span>
           </div>
         </div>
 
@@ -287,9 +304,17 @@ export function HeroSearchWidget() {
             <div className="lg:col-span-6 bg-zinc-50 border border-zinc-200/90 rounded-2xl p-2 flex flex-col sm:flex-row items-center gap-2 relative">
               {/* Origin Block */}
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="Choose departure airport"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setOpenOriginModal(true);
+                  }
+                }}
                 onClick={() => {
                   setOpenOriginModal(true);
-                  fetchSuggestions(originQuery);
                 }}
                 className="flex-1 w-full p-3 bg-white hover:bg-zinc-50/80 border border-zinc-200/80 rounded-xl cursor-pointer transition-all flex items-center gap-3"
               >
@@ -297,10 +322,16 @@ export function HeroSearchWidget() {
                   <Plane className="w-4 h-4 -rotate-45" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Departure</div>
+                  <div className="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">
+                    Departure
+                  </div>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-zinc-950 tracking-tight">{origin.iata}</span>
-                    <span className="text-xs font-bold text-zinc-700 truncate">{origin.city}</span>
+                    <span className="text-lg font-semibold text-slate-900 tracking-tight">
+                      {origin.iata}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-700 truncate">
+                      {origin.city}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -320,9 +351,17 @@ export function HeroSearchWidget() {
 
               {/* Destination Block */}
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="Choose arrival airport"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setOpenDestModal(true);
+                  }
+                }}
                 onClick={() => {
                   setOpenDestModal(true);
-                  fetchSuggestions(destQuery);
                 }}
                 className="flex-1 w-full p-3 bg-white hover:bg-zinc-50/80 border border-zinc-200/80 rounded-xl cursor-pointer transition-all flex items-center gap-3"
               >
@@ -330,41 +369,59 @@ export function HeroSearchWidget() {
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Arrival</div>
+                  <div className="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">
+                    Arrival
+                  </div>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-zinc-950 tracking-tight">{destination.iata}</span>
-                    <span className="text-xs font-bold text-zinc-700 truncate">{destination.city}</span>
+                    <span className="text-lg font-semibold text-slate-900 tracking-tight">
+                      {destination.iata}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-700 truncate">
+                      {destination.city}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Departure & Return Dates */}
-            <div className="lg:col-span-4 bg-zinc-50 border border-zinc-200/90 rounded-2xl p-2 grid grid-cols-2 gap-2">
+            <div className="lg:col-span-4 bg-zinc-50 border border-zinc-200/90 rounded-2xl p-2 grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
               {/* Departure Date */}
               <div className="p-3 bg-white border border-zinc-200/80 rounded-xl">
-                <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider flex items-center gap-1">
+                <div className="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-blue-600" /> Departure
                 </div>
                 <input
                   type="date"
+                  aria-label="Departure date"
+                  required
+                  min={today}
                   value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  className="w-full bg-transparent mt-1 text-xs sm:text-sm font-black text-zinc-950 outline-hidden cursor-pointer"
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setDepartureDate(next);
+                    if (next && returnDate < next) setReturnDate(next);
+                  }}
+                  className="w-full bg-transparent mt-1 text-xs sm:text-sm font-semibold text-slate-900 outline-hidden cursor-pointer"
                 />
               </div>
 
               {/* Return Date */}
-              <div className={`p-3 bg-white border border-zinc-200/80 rounded-xl ${tripType === "ONE_WAY" ? "opacity-30 pointer-events-none" : ""}`}>
-                <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider flex items-center gap-1">
+              <div
+                className={`p-3 bg-white border border-zinc-200/80 rounded-xl ${tripType === "ONE_WAY" ? "opacity-30 pointer-events-none" : ""}`}
+              >
+                <div className="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-zinc-500" /> Return
                 </div>
                 <input
                   type="date"
+                  aria-label="Return date"
+                  required={tripType === "ROUND_TRIP"}
+                  min={departureDate || today}
                   disabled={tripType === "ONE_WAY"}
                   value={returnDate}
                   onChange={(e) => setReturnDate(e.target.value)}
-                  className="w-full bg-transparent mt-1 text-xs sm:text-sm font-black text-zinc-950 outline-hidden cursor-pointer"
+                  className="w-full bg-transparent mt-1 text-xs sm:text-sm font-semibold text-slate-900 outline-hidden cursor-pointer"
                 />
               </div>
             </div>
@@ -387,25 +444,51 @@ export function HeroSearchWidget() {
           {/* Quick Route Shortcuts with Live Fares */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold text-zinc-400 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-blue-600" /> Direct Deals:
+              <Sparkles className="w-3 h-3 text-blue-600" /> Popular routes:
             </span>
             {[
-              { from: "JFK", fromCity: "New York", to: "LHR", toCity: "London", fare: "$420" },
-              { from: "SFO", fromCity: "San Francisco", to: "HND", toCity: "Tokyo", fare: "$680" },
-              { from: "DXB", fromCity: "Dubai", to: "SIN", toCity: "Singapore", fare: "$540" },
-              { from: "LHR", fromCity: "London", to: "CDG", toCity: "Paris", fare: "$140" },
+              {
+                from: "JFK",
+                fromCity: "New York",
+                to: "LHR",
+                toCity: "London",
+              },
+              {
+                from: "SFO",
+                fromCity: "San Francisco",
+                to: "HND",
+                toCity: "Tokyo",
+              },
+              {
+                from: "DXB",
+                fromCity: "Dubai",
+                to: "SIN",
+                toCity: "Singapore",
+              },
+              { from: "LHR", fromCity: "London", to: "CDG", toCity: "Paris" },
             ].map((r, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => {
-                  setOrigin({ iata: r.from, city: r.fromCity, name: `${r.fromCity} International`, country: "" });
-                  setDestination({ iata: r.to, city: r.toCity, name: `${r.toCity} International`, country: "" });
+                  setOrigin({
+                    iata: r.from,
+                    city: r.fromCity,
+                    name: `${r.fromCity} International`,
+                    country: "",
+                  });
+                  setDestination({
+                    iata: r.to,
+                    city: r.toCity,
+                    name: `${r.toCity} International`,
+                    country: "",
+                  });
                 }}
                 className="px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
-                <span>{r.fromCity} → {r.toCity}</span>
-                <span className="font-mono font-bold text-slate-900 text-[11px]">{r.fare}</span>
+                <span>
+                  {r.fromCity} → {r.toCity}
+                </span>
               </button>
             ))}
           </div>
@@ -423,118 +506,35 @@ export function HeroSearchWidget() {
         </div>
       </div>
 
-      {/* Origin Airport Autocomplete Modal */}
       {openOriginModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl max-w-md w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-              <div className="text-sm font-bold text-zinc-900">Select Origin Airport</div>
-              <button
-                type="button"
-                onClick={() => setOpenOriginModal(false)}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="relative">
-              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                autoFocus
-                placeholder="Search city, airport name, or IATA code..."
-                value={originQuery}
-                onChange={(e) => {
-                  setOriginQuery(e.target.value);
-                  fetchSuggestions(e.target.value);
-                }}
-                className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-900 focus:bg-white focus:border-blue-600 outline-hidden"
-              />
-            </div>
-
-            <div className="max-h-64 overflow-y-auto space-y-1">
-              {suggestions.map((item) => (
-                <div
-                  key={item.iataCode}
-                  onClick={() => {
-                    setOrigin({ iata: item.iataCode, city: item.city, name: item.name, country: item.country });
-                    setOpenOriginModal(false);
-                    setOriginQuery("");
-                  }}
-                  className="p-3 rounded-xl hover:bg-zinc-50 cursor-pointer flex items-center justify-between transition-colors"
-                >
-                  <div>
-                    <div className="text-xs font-bold text-zinc-900">
-                      {item.city}, {item.country}
-                    </div>
-                    <div className="text-[11px] text-zinc-400 mt-0.5">{item.name}</div>
-                  </div>
-                  <span className="font-mono text-xs font-bold text-zinc-900 bg-zinc-100 px-2.5 py-1 rounded-lg border border-zinc-200">
-                    {item.iataCode}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <AirportPicker
+          title="Where are you flying from?"
+          onClose={() => setOpenOriginModal(false)}
+          onSelect={(airport) => {
+            setOrigin({
+              iata: airport.iataCode,
+              city: airport.city,
+              name: airport.name,
+              country: airport.country,
+            });
+            setOpenOriginModal(false);
+          }}
+        />
       )}
-
-      {/* Destination Airport Autocomplete Modal */}
       {openDestModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl max-w-md w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-              <div className="text-sm font-bold text-zinc-900">Select Destination Airport</div>
-              <button
-                type="button"
-                onClick={() => setOpenDestModal(false)}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="relative">
-              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                autoFocus
-                placeholder="Search city, airport name, or IATA code..."
-                value={destQuery}
-                onChange={(e) => {
-                  setDestQuery(e.target.value);
-                  fetchSuggestions(e.target.value);
-                }}
-                className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-900 focus:bg-white focus:border-blue-600 outline-hidden"
-              />
-            </div>
-
-            <div className="max-h-64 overflow-y-auto space-y-1">
-              {suggestions.map((item) => (
-                <div
-                  key={item.iataCode}
-                  onClick={() => {
-                    setDestination({ iata: item.iataCode, city: item.city, name: item.name, country: item.country });
-                    setOpenDestModal(false);
-                    setDestQuery("");
-                  }}
-                  className="p-3 rounded-xl hover:bg-zinc-50 cursor-pointer flex items-center justify-between transition-colors"
-                >
-                  <div>
-                    <div className="text-xs font-bold text-zinc-900">
-                      {item.city}, {item.country}
-                    </div>
-                    <div className="text-[11px] text-zinc-400 mt-0.5">{item.name}</div>
-                  </div>
-                  <span className="font-mono text-xs font-bold text-zinc-900 bg-zinc-100 px-2.5 py-1 rounded-lg border border-zinc-200">
-                    {item.iataCode}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <AirportPicker
+          title="Where would you like to go?"
+          onClose={() => setOpenDestModal(false)}
+          onSelect={(airport) => {
+            setDestination({
+              iata: airport.iataCode,
+              city: airport.city,
+              name: airport.name,
+              country: airport.country,
+            });
+            setOpenDestModal(false);
+          }}
+        />
       )}
     </div>
   );

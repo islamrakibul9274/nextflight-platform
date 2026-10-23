@@ -5,7 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number, currency: string = "USD"): string {
+export function formatCurrency(
+  amount: number,
+  currency: string = "USD",
+): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency,
@@ -21,12 +24,16 @@ export function formatDuration(minutes: number): string {
   return `${hours}h ${mins}m`;
 }
 
-export function formatFlightTime(dateInput: string | Date): string {
+export function formatFlightTime(
+  dateInput: string | Date,
+  timeZone?: string,
+): string {
   const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    ...(timeZone ? { timeZone } : {}),
   }).format(date);
 }
 

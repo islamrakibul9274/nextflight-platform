@@ -18,11 +18,16 @@ export function ImageWithFallback({
   sizes?: string;
   priority?: boolean;
 }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  if (failedSource === src) {
     return (
       <div
         className={`flex items-center justify-center bg-gradient-to-br from-slate-800 to-sky-900 text-white ${className || ""}`}
+        style={
+          props.fill
+            ? { position: "absolute", inset: 0 }
+            : { width: props.width, height: props.height }
+        }
         role="img"
         aria-label={alt}
       >
@@ -35,7 +40,7 @@ export function ImageWithFallback({
       src={src}
       alt={alt}
       className={className}
-      onError={() => setFailed(true)}
+      onError={() => setFailedSource(src)}
       {...props}
     />
   );

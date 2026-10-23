@@ -64,12 +64,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col font-sans bg-white text-slate-900 selection:bg-sky-100 selection:text-sky-900">
         <AuthProvider>
           <ToastProvider>
+            <a href="#main-content" className="skip-link">
+              Skip to content
+            </a>
             <Navbar />
-            <main className="flex-1">
+            <main id="main-content" tabIndex={-1} className="flex-1">
               <ErrorBoundary>{children}</ErrorBoundary>
             </main>
             <Footer />

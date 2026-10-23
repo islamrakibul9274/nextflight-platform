@@ -3,14 +3,19 @@
 import React, { useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { safeRedirect } from "@/lib/safe-redirect";
 import { useAuth } from "@/context/AuthContext";
-import { Plane, Lock, Mail, User, Phone, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
-
-function getSafeNext(value: string | null): string | null {
-  if (!value) return null;
-  if (!value.startsWith("/") || value.startsWith("//")) return null;
-  return value;
-}
+import {
+  Plane,
+  Lock,
+  Mail,
+  User,
+  Phone,
+  ArrowRight,
+  AlertCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 function passwordScore(pw: string): { score: number; label: string } {
   if (pw.length < 4) return { score: 0, label: "Too short" };
@@ -35,7 +40,7 @@ function RegisterContent() {
   const { register } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = getSafeNext(searchParams.get("next"));
+  const next = safeRedirect(searchParams.get("next"));
 
   const strength = useMemo(() => passwordScore(password), [password]);
 
@@ -58,7 +63,12 @@ function RegisterContent() {
 
     setLoading(true);
     try {
-      const res = await register(name.trim(), email.trim(), password, phone.trim() || undefined);
+      const res = await register(
+        name.trim(),
+        email.trim(),
+        password,
+        phone.trim() || undefined,
+      );
       if (res.success) {
         router.push(next || "/my-trips");
       } else {
@@ -87,13 +97,17 @@ function RegisterContent() {
             Create Your NextFlight Account
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Unlock direct booking rates, saved travelers, and automatic e-ticket synchronization.
+            Unlock direct booking rates, saved travelers, and automatic e-ticket
+            synchronization.
           </p>
         </div>
 
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl p-8 space-y-6">
           {error && (
-            <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+            <div
+              role="alert"
+              className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2"
+            >
               <AlertCircle className="w-4 h-4 shrink-0" aria-hidden />
               <span>{error}</span>
             </div>
@@ -101,11 +115,17 @@ function RegisterContent() {
 
           <form onSubmit={handleRegister} className="space-y-4" noValidate>
             <div>
-              <label htmlFor="reg-name" className="text-xs font-bold text-slate-700 block mb-1.5">
+              <label
+                htmlFor="reg-name"
+                className="text-xs font-bold text-slate-700 block mb-1.5"
+              >
                 Full Legal Name *
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden />
+                <User
+                  className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  aria-hidden
+                />
                 <input
                   id="reg-name"
                   type="text"
@@ -120,11 +140,17 @@ function RegisterContent() {
             </div>
 
             <div>
-              <label htmlFor="reg-email" className="text-xs font-bold text-slate-700 block mb-1.5">
+              <label
+                htmlFor="reg-email"
+                className="text-xs font-bold text-slate-700 block mb-1.5"
+              >
                 Email Address *
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden />
+                <Mail
+                  className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  aria-hidden
+                />
                 <input
                   id="reg-email"
                   type="email"
@@ -139,11 +165,17 @@ function RegisterContent() {
             </div>
 
             <div>
-              <label htmlFor="reg-phone" className="text-xs font-bold text-slate-700 block mb-1.5">
+              <label
+                htmlFor="reg-phone"
+                className="text-xs font-bold text-slate-700 block mb-1.5"
+              >
                 Mobile Phone (Optional)
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden />
+                <Phone
+                  className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  aria-hidden
+                />
                 <input
                   id="reg-phone"
                   type="tel"
@@ -157,9 +189,17 @@ function RegisterContent() {
             </div>
 
             <div>
-              <label htmlFor="reg-password" className="text-xs font-bold text-slate-700 block mb-1.5">Password *</label>
+              <label
+                htmlFor="reg-password"
+                className="text-xs font-bold text-slate-700 block mb-1.5"
+              >
+                Password *
+              </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden />
+                <Lock
+                  className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  aria-hidden
+                />
                 <input
                   id="reg-password"
                   type={showPassword ? "text" : "password"}
@@ -178,7 +218,11 @@ function RegisterContent() {
                   aria-pressed={showPassword}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
               {password.length > 0 && (
@@ -192,7 +236,8 @@ function RegisterContent() {
                     ))}
                   </div>
                   <p className="text-[11px] font-semibold text-slate-500 mt-1">
-                    Strength: {strength.label} — 4+ characters is enough for this demo.
+                    Strength: {strength.label} — 4+ characters is enough for
+                    this demo.
                   </p>
                 </div>
               )}
@@ -204,7 +249,9 @@ function RegisterContent() {
               aria-busy={loading}
               className="w-full py-3.5 bg-slate-900 hover:bg-sky-600 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{loading ? "Creating Account..." : "Create NextFlight Account"}</span>
+              <span>
+                {loading ? "Creating Account..." : "Create NextFlight Account"}
+              </span>
               <ArrowRight className="w-4 h-4" aria-hidden />
             </button>
           </form>
@@ -212,7 +259,10 @@ function RegisterContent() {
 
         <p className="text-center text-xs text-slate-500 mt-6">
           Already have an account?{" "}
-          <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="font-bold text-slate-900 hover:text-sky-600">
+          <Link
+            href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
+            className="font-bold text-slate-900 hover:text-sky-600"
+          >
             Sign In
           </Link>
         </p>
@@ -223,7 +273,13 @@ function RegisterContent() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-xs text-slate-500">Loading registration...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-xs text-slate-500">
+          Loading registration...
+        </div>
+      }
+    >
       <RegisterContent />
     </Suspense>
   );

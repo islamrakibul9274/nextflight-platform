@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/Toast";
+import { Dialog } from "@/components/ui/Dialog";
 import { TierBadge } from "@/components/ui/TierBadge";
 import {
   Plane,
   User,
   LogOut,
-  Sparkles,
   Ticket,
   Compass,
   Crown,
@@ -17,263 +18,294 @@ import {
   Menu,
   X,
   ChevronDown,
+  ArrowUpRight,
+  CircleHelp,
 } from "lucide-react";
+
+const links = [
+  { name: "Flights", href: "/search", icon: Plane },
+  { name: "Destinations", href: "/#destinations", icon: Compass },
+  { name: "Membership", href: "/membership", icon: Crown },
+  { name: "Travel help", href: "/help", icon: CircleHelp },
+  { name: "My trips", href: "/my-trips", icon: Ticket },
+];
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-
+  const { user, loading, logout } = useAuth();
+  const { notify } = useToast();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Close menus on navigation instead of in link onClick handlers:
-  // closing inside onClick can unmount the link between mousedown and click,
-  // swallowing the navigation. Syncing open-state to the route is the
-  // canonical useEffect use case.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync menu open-state to route
-    setProfileDropdownOpen(false);
-    setMobileMenuOpen(false);
+    // Route changes close both navigation surfaces, including browser back/forward.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMobileOpen(false);
+    setProfileOpen(false);
   }, [pathname]);
-
   useEffect(() => {
-    if (!profileDropdownOpen && !mobileMenuOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setProfileDropdownOpen(false);
-        setMobileMenuOpen(false);
+    if (!profileOpen) return;
+    const onClick = (event: PointerEvent) => {
+      if (!profileRef.current?.contains(event.target as Node))
+        setProfileOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+        profileButtonRef.current?.focus();
       }
     };
-    const onClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest("[data-nav-menu]")) {
-        setProfileDropdownOpen(false);
-      }
-    };
+    document.addEventListener("pointerdown", onClick);
     document.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onClick);
     return () => {
+      document.removeEventListener("pointerdown", onClick);
       document.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onClick);
     };
-  }, [profileDropdownOpen, mobileMenuOpen]);
+  }, [profileOpen]);
 
-  const navLinks = [
-    { name: "Flights", href: "/search", icon: Plane },
-    { name: "Explore", href: "/flights", icon: Compass },
-    { name: "Membership", href: "/membership", icon: Crown },
-    { name: "AI Concierge", href: "/help", icon: Sparkles },
-    { name: "My Trips", href: "/my-trips", icon: Ticket },
-  ];
-
+  const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await logout();
+      setProfileOpen(false);
+      setMobileOpen(false);
+    } catch {
+      notify(
+        "We couldn't sign you out. Check your connection and try again.",
+        "error",
+      );
+    } finally {
+      setSigningOut(false);
+    }
+  };
+  const isActive = (href: string) =>
+    pathname === href ||
+    (href === "/search" &&
+      (pathname === "/flights" || pathname.startsWith("/flight/")));
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs py-3"
-          : "bg-transparent py-4"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-2xl bg-sky-600 flex items-center justify-center text-white shadow-2xs group-hover:scale-105 transition-transform">
-              <Plane className="w-5 h-5 -rotate-45" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-lg tracking-tight text-zinc-950 leading-none">
-                Next<span className="text-blue-600">Flight</span>
-              </span>
-              <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mt-0.5">
-                Aviation Intelligence
-              </span>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 bg-white/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/80 shadow-2xs">
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href;
-              const Icon = link.icon;
-              return (
+    <header className="site-header">
+      <div className="page-container flex h-[76px] items-center justify-between gap-5">
+        <Link
+          href="/"
+          aria-label="NextFlight home"
+          className="flex shrink-0 items-center gap-2.5"
+        >
+          <span className="brand-symbol">
+            <Plane
+              size={20}
+              strokeWidth={1.7}
+              className="-rotate-45"
+              aria-hidden="true"
+            />
+          </span>
+          <span className="text-xl font-semibold tracking-[-0.06em] text-slate-900">
+            nextflight<span className="text-sky-600">.</span>
+          </span>
+        </Link>
+        <nav aria-label="Main" className="hidden xl:flex items-center gap-1">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={isActive(link.href) ? "page" : undefined}
+              className={`nav-link ${isActive(link.href) ? "is-active" : ""}`}
+            >
+              {link.name}
+            </Link>
+          ))}
+        </nav>
+        <div className="hidden xl:flex items-center gap-2">
+          {loading ? (
+            <div
+              className="h-10 w-40 animate-pulse rounded-xl bg-slate-100"
+              aria-label="Loading account"
+            />
+          ) : user ? (
+            <>
+              {user.role === "ADMIN" && (
                 <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                    isActive
-                      ? "bg-slate-900 text-white shadow-xs"
-                      : "text-slate-600 hover:text-slate-950 hover:bg-slate-100/80"
-                  }`}
+                  href="/admin/dashboard"
+                  aria-label="Admin console"
+                  title="Admin console"
+                  className="rounded-xl p-3 text-slate-500 hover:bg-slate-100"
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{link.name}</span>
+                  <Shield size={17} aria-hidden="true" />
                 </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right Action Menu */}
-          <div className="hidden md:flex items-center gap-3">
-            {user?.role === "ADMIN" && (
-              <Link
-                href="/admin/dashboard"
-                className="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200 text-xs font-bold transition-colors flex items-center gap-1.5"
+              )}
+              <div
+                ref={profileRef}
+                className="relative"
+                onBlur={(event) => {
+                  if (
+                    !event.currentTarget.contains(
+                      event.relatedTarget as Node | null,
+                    )
+                  )
+                    setProfileOpen(false);
+                }}
               >
-                <Shield className="w-3.5 h-3.5" />
-                <span>Admin Console</span>
-              </Link>
-            )}
-
-            {user ? (
-              <div className="relative" data-nav-menu>
                 <button
+                  ref={profileButtonRef}
                   type="button"
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  aria-haspopup="menu"
-                  aria-expanded={profileDropdownOpen}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 transition-colors"
+                  aria-expanded={profileOpen}
+                  aria-controls="account-panel"
+                  onClick={() => setProfileOpen((value) => !value)}
+                  className="flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-3 text-sm text-slate-700"
                 >
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold" aria-hidden>
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white"
+                    aria-hidden="true"
+                  >
                     {(user.name || user.email || "N").charAt(0).toUpperCase()}
-                  </div>
-                  <span className="max-w-[100px] truncate">{user.name}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" aria-hidden />
+                  </span>
+                  <span className="max-w-24 truncate">
+                    {user.name || "My account"}
+                  </span>
+                  <ChevronDown size={13} aria-hidden="true" />
                 </button>
-
-                {profileDropdownOpen && (
-                  <div role="menu" className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 z-50">
-                    <div className="px-3 py-2 border-b border-slate-100 text-xs">
-                      <div className="font-bold text-slate-900 truncate flex items-center gap-1.5">
-                        <span className="truncate">{user.name}</span>
+                {profileOpen && (
+                  <div
+                    id="account-panel"
+                    className="absolute right-0 top-full mt-3 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl"
+                  >
+                    <div className="mb-1 border-b border-slate-100 px-3 py-3">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="truncate text-sm font-semibold text-slate-900">
+                          {user.name}
+                        </span>
                         <TierBadge tier={user.membershipTier} />
                       </div>
-                      <div className="text-[10px] text-slate-400 truncate">{user.email}</div>
+                      <p className="truncate text-xs text-slate-500">
+                        {user.email}
+                      </p>
                     </div>
-                    <div className="py-1">
-                      <Link
-                        href="/profile"
-                        className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
-                      >
-                        <User className="w-4 h-4 text-slate-400" />
-                        <span>Account & Travelers</span>
-                      </Link>
-                      <Link
-                        href="/my-trips"
-                        className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
-                      >
-                        <Ticket className="w-4 h-4 text-slate-400" />
-                        <span>My Trips & E-Tickets</span>
-                      </Link>
-                      <Link
-                        href="/membership"
-                        className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
-                      >
-                        <Crown className="w-4 h-4 text-amber-500" />
-                        <span>Stratosphere Perks</span>
-                      </Link>
-                    </div>
-                    <div className="border-t border-slate-100 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          logout();
-                          setProfileDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
+                    <Link href="/profile" className="account-link">
+                      <User size={16} aria-hidden="true" />
+                      Account & travelers
+                    </Link>
+                    <Link href="/my-trips" className="account-link">
+                      <Ticket size={16} aria-hidden="true" />
+                      My trips & tickets
+                    </Link>
+                    <Link href="/membership" className="account-link">
+                      <Crown size={16} aria-hidden="true" />
+                      Membership
+                    </Link>
+                    <button
+                      type="button"
+                      disabled={signingOut}
+                      onClick={signOut}
+                      className="account-link w-full text-rose-600"
+                    >
+                      <LogOut size={16} aria-hidden="true" />
+                      {signingOut ? "Signing out…" : "Sign out"}
+                    </button>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 transition-colors"
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="nav-link">
+                Sign in
+              </Link>
+              <Link href="/register" className="button-primary text-xs">
+                Get started <ArrowUpRight size={14} aria-hidden="true" />
+              </Link>
+            </>
+          )}
+        </div>
+        <button
+          type="button"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-nav"
+          aria-label="Open navigation"
+          onClick={() => setMobileOpen(true)}
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 xl:hidden"
+        >
+          <Menu size={20} aria-hidden="true" />
+        </button>
+      </div>
+      {mobileOpen && (
+        <Dialog
+          title="Navigation"
+          onClose={() => setMobileOpen(false)}
+          className="self-start mt-3 max-w-lg"
+        >
+          <div className="mb-5 flex items-center justify-between">
+            <span className="text-lg font-semibold tracking-tight">
+              Where to next?
+            </span>
+            <button
+              type="button"
+              aria-label="Close navigation"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+          </div>
+          <nav id="mobile-nav" aria-label="Mobile" className="space-y-1">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                aria-current={isActive(link.href) ? "page" : undefined}
+                className={`account-link min-h-12 ${isActive(link.href) ? "bg-sky-50 text-sky-700" : ""}`}
+              >
+                <link.icon size={18} aria-hidden="true" />
+                {link.name}
+                <ArrowUpRight
+                  size={14}
+                  className="ml-auto text-slate-400"
+                  aria-hidden="true"
+                />
+              </Link>
+            ))}
+          </nav>
+          <div className="mt-5 border-t border-slate-100 pt-4">
+            {user ? (
+              <div className="space-y-1">
+                <Link href="/profile" className="account-link">
+                  <User size={17} aria-hidden="true" />
+                  Account & travelers
+                </Link>
+                {user.role === "ADMIN" && (
+                  <Link href="/admin/dashboard" className="account-link">
+                    <Shield size={17} aria-hidden="true" />
+                    Admin console
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={signOut}
+                  disabled={signingOut}
+                  className="account-link w-full text-rose-600"
                 >
-                  Sign In
+                  <LogOut size={17} aria-hidden="true" />
+                  {signingOut ? "Signing out…" : "Sign out"}
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <Link href="/login" className="button-secondary justify-center">
+                  Sign in
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
+                  className="button-primary justify-center"
                 >
-                  Create Account
+                  Get started
                 </Link>
               </div>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-expanded={mobileMenuOpen}
-            aria-controls="mobile-nav"
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            className="md:hidden p-2 rounded-xl bg-slate-100 text-slate-700"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" aria-hidden /> : <Menu className="w-5 h-5" aria-hidden />}
-          </button>
-        </div>
-
-        {/* Mobile Dropdown */}
-        {mobileMenuOpen && (
-          <nav id="mobile-nav" aria-label="Mobile" className="md:hidden mt-3 p-4 bg-white rounded-2xl border border-slate-200 shadow-xl space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                aria-current={pathname === link.href ? "page" : undefined}
-                className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl"
-              >
-                <link.icon className="w-4 h-4" aria-hidden />
-                <span>{link.name}</span>
-              </Link>
-            ))}
-            <div className="pt-2 border-t border-slate-100">
-              {user ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    logout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl"
-                >
-                  Sign Out ({user.name})
-                </button>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <Link
-                    href="/login"
-                    className="p-2 text-center text-xs font-bold text-slate-700 bg-slate-100 rounded-xl"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="p-2 text-center text-xs font-bold text-white bg-slate-900 rounded-xl"
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
-            </div>
-          </nav>
-        )}
-      </div>
+        </Dialog>
+      )}
     </header>
   );
 }

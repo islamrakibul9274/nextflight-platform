@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SlidersHorizontal, RotateCcw, Check } from "lucide-react";
+import { SlidersHorizontal, RotateCcw } from "lucide-react";
 
 interface FilterState {
   stops: string; // 'all' | '0' | '1' | '2'
@@ -14,7 +14,10 @@ interface FilterState {
 interface FilterSidebarProps {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
-  availableAirlines: Record<string, { name: string; count: number; logo: string }>;
+  availableAirlines: Record<
+    string,
+    { name: string; count: number; logo: string }
+  >;
   minCalculatedPrice: number;
   maxCalculatedPrice: number;
 }
@@ -52,7 +55,7 @@ export function FlightFilterSidebar({
   const handleReset = () => {
     onChange({
       stops: "all",
-      maxPrice: maxCalculatedPrice || 2500,
+      maxPrice: 0,
       timeWindow: "all",
       selectedAirlines: [],
       refundableOnly: false,
@@ -78,7 +81,9 @@ export function FlightFilterSidebar({
 
       {/* 1. Stops */}
       <div className="space-y-3">
-        <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Stops</h4>
+        <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+          Stops
+        </h4>
         <div className="space-y-1.5">
           {[
             { id: "all", label: "Any number of stops" },
@@ -106,40 +111,58 @@ export function FlightFilterSidebar({
       {/* 2. Price Range */}
       <div className="space-y-3 border-t border-zinc-100 pt-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Max Price</h4>
-          <span className="text-xs font-mono font-bold text-blue-600">${filters.maxPrice}</span>
+          <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+            Max Price
+          </h4>
+          <span className="text-xs font-mono font-bold text-blue-600">
+            ${filters.maxPrice || maxCalculatedPrice}
+          </span>
         </div>
         <input
           type="range"
-          id="price-range-slider"
+
           name="priceRange"
-          min={minCalculatedPrice || 200}
-          max={maxCalculatedPrice || 3000}
-          step={20}
-          value={filters.maxPrice}
+          aria-label="Maximum price per traveler"
+          min={minCalculatedPrice}
+          max={Math.max(minCalculatedPrice + 1, maxCalculatedPrice)}
+          step={1}
+          value={Math.min(
+            Math.max(
+              filters.maxPrice || maxCalculatedPrice,
+              minCalculatedPrice,
+            ),
+            Math.max(minCalculatedPrice + 1, maxCalculatedPrice),
+          )}
           onChange={(e) => handlePriceChange(Number(e.target.value))}
           className="w-full accent-blue-600 cursor-pointer"
         />
         <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
-          <span>${minCalculatedPrice || 200}</span>
-          <span>${maxCalculatedPrice || 3000}</span>
+          <span>${minCalculatedPrice}</span>
+          <span>${maxCalculatedPrice}</span>
         </div>
       </div>
 
       {/* 3. Departure Times Window */}
       <div className="space-y-3 border-t border-zinc-100 pt-4">
-        <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Departure Window</h4>
+        <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+          Departure Window{" "}
+          <span className="normal-case tracking-normal font-normal text-zinc-400">
+            (UTC)
+          </span>
+        </h4>
         <div className="grid grid-cols-2 gap-1.5">
           {[
             { id: "all", label: "Anytime", sub: "24 Hours" },
             { id: "morning", label: "Morning", sub: "06:00 - 12:00" },
             { id: "afternoon", label: "Afternoon", sub: "12:00 - 18:00" },
             { id: "evening", label: "Evening", sub: "18:00 - 24:00" },
+            { id: "night", label: "Night", sub: "00:00 - 06:00" },
           ].map((tw) => (
             <button
               key={tw.id}
               type="button"
               onClick={() => handleTimeWindowChange(tw.id)}
+              aria-pressed={filters.timeWindow === tw.id}
               className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                 filters.timeWindow === tw.id
                   ? "border-blue-600 bg-blue-50 text-blue-950 font-bold"
@@ -156,7 +179,9 @@ export function FlightFilterSidebar({
       {/* 4. Airlines */}
       {Object.keys(availableAirlines).length > 0 && (
         <div className="space-y-3 border-t border-zinc-100 pt-4">
-          <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Airlines</h4>
+          <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+            Airlines
+          </h4>
           <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
             {Object.entries(availableAirlines).map(([code, info]) => {
               return (
@@ -167,16 +192,20 @@ export function FlightFilterSidebar({
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      id={`airline-check-${code}`}
+
                       name={`airline_${code}`}
                       checked={filters.selectedAirlines.includes(code)}
                       onChange={() => toggleAirline(code)}
                       className="accent-blue-600 rounded w-3.5 h-3.5 cursor-pointer"
                     />
                     <span className="text-sm">{info.logo}</span>
-                    <span className="truncate max-w-[120px] font-medium">{info.name}</span>
+                    <span className="truncate max-w-[120px] font-medium">
+                      {info.name}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-zinc-400 font-mono">({info.count})</span>
+                  <span className="text-[10px] text-zinc-400 font-mono">
+                    ({info.count})
+                  </span>
                 </label>
               );
             })}
@@ -187,13 +216,17 @@ export function FlightFilterSidebar({
       {/* 5. Policy Toggles */}
       <div className="space-y-2 border-t border-zinc-100 pt-4">
         <label className="flex items-center justify-between cursor-pointer">
-          <span className="text-xs font-semibold text-zinc-700">Refundable Fares Only</span>
+          <span className="text-xs font-semibold text-zinc-700">
+            Refundable Fares Only
+          </span>
           <input
             type="checkbox"
-            id="refundable-fares-only-toggle"
+
             name="refundableOnly"
             checked={filters.refundableOnly}
-            onChange={(e) => onChange({ ...filters, refundableOnly: e.target.checked })}
+            onChange={(e) =>
+              onChange({ ...filters, refundableOnly: e.target.checked })
+            }
             className="accent-blue-600 rounded w-4 h-4 cursor-pointer"
           />
         </label>

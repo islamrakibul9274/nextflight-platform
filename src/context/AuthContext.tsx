@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 
 export interface AuthUser {
@@ -27,13 +33,13 @@ interface AuthContextType {
   login: (
     email: string,
     password: string,
-    rememberMe?: boolean
+    rememberMe?: boolean,
   ) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
   register: (
     name: string,
     email: string,
     password: string,
-    phone?: string
+    phone?: string,
   ) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
   logout: (redirectTo?: string) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -100,7 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (name: string, email: string, password: string, phone?: string) => {
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+  ) => {
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -120,18 +131,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async (redirectTo = "/") => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch (e) {
-      console.error("Logout error:", e);
-    } finally {
-      setUser(null);
-      router.push(redirectTo);
-    }
+    const response = await fetch("/api/auth/logout", { method: "POST" });
+    if (!response.ok) throw new Error("Sign out failed. Please try again.");
+    setUser(null);
+    router.push(redirectTo);
+    router.refresh();
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

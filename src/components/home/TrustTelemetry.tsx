@@ -1,54 +1,51 @@
-import React from "react";
-import { ShieldCheck, Activity, Users, Award } from "lucide-react";
-
+import { ShieldCheck, Luggage, Armchair, Ticket } from "lucide-react";
+const assurances = [
+  {
+    icon: ShieldCheck,
+    title: "Secure payment",
+    detail: "Checkout powered by Stripe",
+  },
+  {
+    icon: Luggage,
+    title: "Baggage made clear",
+    detail: "Review allowances before booking",
+  },
+  {
+    icon: Armchair,
+    title: "Your seat, your choice",
+    detail: "Explore the cabin before you fly",
+  },
+  {
+    icon: Ticket,
+    title: "Everything together",
+    detail: "Bookings and tickets in My Trips",
+  },
+];
 export function TrustTelemetry() {
-  const stats = [
-    {
-      icon: Activity,
-      value: "99.98%",
-      label: "On-Time Dispatch Rate",
-      subtext: "Across global partner networks",
-    },
-    {
-      icon: Users,
-      value: "180+",
-      label: "International Airports",
-      subtext: "Direct & single-stop connections",
-    },
-    {
-      icon: Award,
-      value: "4.95 / 5",
-      label: "Traveler Satisfaction",
-      subtext: "Over 48,000 verified reviews",
-    },
-    {
-      icon: ShieldCheck,
-      value: "$2.8M+",
-      label: "Member Fare Savings",
-      subtext: "Delivered in the past 12 months",
-    },
-  ];
-
   return (
-    <section className="py-20 bg-sky-50/70 border-y border-sky-100 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 divide-y sm:divide-y-0 sm:divide-x divide-sky-100">
-          {stats.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <div key={i} className="pt-6 sm:pt-0 sm:px-6 first:pl-0 last:pr-0 text-center sm:text-left">
-                <div className="w-10 h-10 rounded-lg bg-white border border-sky-100 flex items-center justify-center text-sky-600 mb-4 mx-auto sm:mx-0 shadow-sm">
-                  <Icon className="w-5 h-5" aria-hidden />
-                </div>
-                <div className="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-slate-900">
-                  {s.value}
-                </div>
-                <div className="text-sm font-semibold text-slate-900 mt-1">{s.label}</div>
-                <div className="text-xs text-slate-500 mt-0.5">{s.subtext}</div>
-              </div>
-            );
-          })}
-        </div>
+    <section
+      aria-label="Travel with confidence"
+      className="border-y border-slate-200/70 bg-[#f6f8fa]"
+    >
+      <div className="page-container grid grid-cols-1 gap-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
+        {assurances.map((item) => (
+          <div key={item.title} className="flex items-start gap-3">
+            <item.icon
+              size={20}
+              strokeWidth={1.5}
+              className="mt-0.5 shrink-0 text-[#527c8a]"
+              aria-hidden="true"
+            />
+            <div>
+              <p className="text-xs font-semibold text-slate-800">
+                {item.title}
+              </p>
+              <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                {item.detail}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );

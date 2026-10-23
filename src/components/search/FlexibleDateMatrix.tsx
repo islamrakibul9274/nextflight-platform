@@ -5,7 +5,7 @@ import { Calendar } from "lucide-react";
 
 interface DateMatrixItem {
   date: string;
-  minPrice: number;
+  minPrice: number | null;
   formattedDate: string;
 }
 
@@ -26,7 +26,7 @@ export function FlexibleDateMatrix({
     <div className="bg-white p-3 rounded-2xl border border-zinc-200 shadow-2xs mb-6 overflow-hidden">
       <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 mb-2 px-1">
         <Calendar className="w-3.5 h-3.5 text-blue-600" />
-        <span>Flexible Travel Dates (+/- 3 Days)</span>
+        <span>Nearby dates · fares per traveler</span>
       </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-7 gap-1.5">
@@ -37,6 +37,8 @@ export function FlexibleDateMatrix({
               key={d.date}
               type="button"
               onClick={() => onSelectDate(d.date)}
+              aria-pressed={isSelected}
+              aria-label={`${d.formattedDate}: ${d.minPrice === null ? "no flights available" : `from $${d.minPrice}`}`}
               className={`p-2.5 rounded-xl text-center transition-all border cursor-pointer ${
                 isSelected
                   ? "bg-blue-50 border-blue-500 shadow-2xs"
@@ -55,7 +57,9 @@ export function FlexibleDateMatrix({
                   isSelected ? "text-blue-600" : "text-zinc-900"
                 }`}
               >
-                from ${d.minPrice}
+                {d.minPrice === null
+                  ? "No flights"
+                  : `from $${d.minPrice.toLocaleString("en-US")}`}
               </div>
             </button>
           );
